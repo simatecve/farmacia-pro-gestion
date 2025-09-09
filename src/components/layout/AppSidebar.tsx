@@ -123,7 +123,7 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
                 variant="ghost"
                 size="sm"
                 onClick={toggleCollapse}
-                className="hidden lg:flex"
+                className="hidden lg:flex h-8 w-8 p-0"
                 title={isCollapsed ? "Expandir menú" : "Contraer menú"}
               >
                 <ChevronLeft className={cn("w-4 h-4 transition-transform duration-200", isCollapsed && "rotate-180")} />
@@ -132,7 +132,7 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
                 variant="ghost"
                 size="sm"
                 onClick={onToggle}
-                className="lg:hidden"
+                className="lg:hidden h-8 w-8 p-0"
               >
                 <X className="w-4 h-4" />
               </Button>

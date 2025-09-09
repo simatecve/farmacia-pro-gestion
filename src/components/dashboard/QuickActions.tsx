@@ -48,15 +48,15 @@ export function QuickActions() {
             <Button
               key={action.title}
               variant={action.variant}
-              className="h-auto p-4 flex flex-col items-start gap-2 hover-scale transition-smooth"
+              className="h-auto p-3 flex flex-col items-start gap-2 hover-scale transition-smooth text-left"
               asChild
             >
               <a href={action.href}>
                 <div className="flex items-center gap-2 w-full">
                   <action.icon className="h-4 w-4 flex-shrink-0" />
-                  <span className="font-medium text-sm">{action.title}</span>
+                  <span className="font-medium text-sm truncate">{action.title}</span>
                 </div>
-                <p className="text-xs text-muted-foreground text-left w-full">
+                <p className="text-xs text-muted-foreground text-left w-full line-clamp-2">
                   {action.description}
                 </p>
               </a>

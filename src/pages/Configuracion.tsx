@@ -3,7 +3,10 @@ import { CompanyForm } from "@/components/settings/CompanyForm";
 import { TaxSettings } from "@/components/settings/TaxSettings";
 import { DeviceSettings } from "@/components/settings/DeviceSettings";
 import { PrintSettings } from "@/components/settings/PrintSettings";
-import { Settings, Building2, Receipt, Printer, Cpu } from "lucide-react";
+import { UserManagement } from "@/components/users/UserManagement";
+import { WebhookSettings } from "@/components/webhooks/WebhookSettings";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Settings, Building2, Receipt, Printer, Cpu, Users, Webhook } from "lucide-react";
 
 export default function Configuracion() {
   return (
@@ -13,45 +16,113 @@ export default function Configuracion() {
         <div>
           <h1 className="text-3xl font-bold">Configuración del Sistema</h1>
           <p className="text-muted-foreground">
-            Configura los datos de tu empresa, impuestos y dispositivos
+            Configura los datos de tu empresa, usuarios, dispositivos y más
           </p>
         </div>
       </div>
 
       <Tabs defaultValue="company" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="company" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
-            Empresa
+            <span className="hidden sm:inline">Empresa</span>
+          </TabsTrigger>
+          <TabsTrigger value="users" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            <span className="hidden sm:inline">Usuarios</span>
+          </TabsTrigger>
+          <TabsTrigger value="webhooks" className="flex items-center gap-2">
+            <Webhook className="h-4 w-4" />
+            <span className="hidden sm:inline">Webhooks</span>
           </TabsTrigger>
           <TabsTrigger value="taxes" className="flex items-center gap-2">
             <Receipt className="h-4 w-4" />
-            Impuestos
+            <span className="hidden sm:inline">Impuestos</span>
           </TabsTrigger>
           <TabsTrigger value="devices" className="flex items-center gap-2">
             <Cpu className="h-4 w-4" />
-            Dispositivos
+            <span className="hidden sm:inline">Dispositivos</span>
           </TabsTrigger>
           <TabsTrigger value="printing" className="flex items-center gap-2">
             <Printer className="h-4 w-4" />
-            Impresión
+            <span className="hidden sm:inline">Impresión</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="company">
-          <CompanyForm />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Información de la Empresa
+              </CardTitle>
+              <CardDescription>
+                Configura los datos básicos de tu empresa
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CompanyForm />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="users">
+          <UserManagement />
+        </TabsContent>
+
+        <TabsContent value="webhooks">
+          <WebhookSettings />
         </TabsContent>
 
         <TabsContent value="taxes">
-          <TaxSettings />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Receipt className="h-5 w-5" />
+                Configuración de Impuestos
+              </CardTitle>
+              <CardDescription>
+                Gestiona los impuestos aplicables a tus productos
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <TaxSettings />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="devices">
-          <DeviceSettings />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Cpu className="h-5 w-5" />
+                Dispositivos Conectados
+              </CardTitle>
+              <CardDescription>
+                Configura lectores de código de barras, báscula y otros dispositivos
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DeviceSettings />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="printing">
-          <PrintSettings />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Printer className="h-5 w-5" />
+                Configuración de Impresión
+              </CardTitle>
+              <CardDescription>
+                Personaliza el formato de recibos y facturas
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <PrintSettings />
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
