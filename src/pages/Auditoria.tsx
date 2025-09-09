@@ -13,16 +13,16 @@ import { useAuditLogs } from "@/hooks/useAuditLogs";
 
 export default function Auditoria() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterTable, setFilterTable] = useState("");
-  const [filterAction, setFilterAction] = useState("");
+  const [filterTable, setFilterTable] = useState("all");
+  const [filterAction, setFilterAction] = useState("all");
   
   const { logs, loading, fetchLogs, refreshLogs } = useAuditLogs();
 
   const filteredLogs = logs.filter(log => {
     const matchesSearch = log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          log.table_name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTable = !filterTable || log.table_name === filterTable;
-    const matchesAction = !filterAction || log.action === filterAction;
+    const matchesTable = filterTable === "all" || log.table_name === filterTable;
+    const matchesAction = filterAction === "all" || log.action === filterAction;
     
     return matchesSearch && matchesTable && matchesAction;
   });
@@ -56,8 +56,8 @@ export default function Auditoria() {
 
   const clearFilters = () => {
     setSearchTerm("");
-    setFilterTable("");
-    setFilterAction("");
+    setFilterTable("all");
+    setFilterAction("all");
   };
 
   if (loading) {
@@ -153,7 +153,7 @@ export default function Auditoria() {
                   <SelectValue placeholder="Tabla" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas las tablas</SelectItem>
+                  <SelectItem value="all">Todas las tablas</SelectItem>
                   {uniqueTables.map((table) => (
                     <SelectItem key={table} value={table}>
                       {table}
@@ -167,7 +167,7 @@ export default function Auditoria() {
                   <SelectValue placeholder="Acción" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   {uniqueActions.map((action) => (
                     <SelectItem key={action} value={action}>
                       {action}
