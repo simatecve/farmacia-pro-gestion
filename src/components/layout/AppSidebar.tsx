@@ -22,7 +22,8 @@ import {
   Bell,
   History,
   Activity,
-  RotateCcw
+  RotateCcw,
+  Webhook
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -65,7 +66,8 @@ const crmItems = [
 // ADMINISTRACIÓN
 const adminItems = [
   { title: "Usuarios", url: "/usuarios", icon: UserCheck },
-  { title: "Auditoría", url: "/auditoria", icon: Activity },
+  { title: "Webhooks", url: "/webhooks", icon: Webhook },
+  { title: "Auditoría", url: "/auditoria", icon: History },
   { title: "Configuración", url: "/configuracion", icon: Settings },
 ];
 
