@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,10 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const { user, loading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+
+  // Check if current route is POS for fullscreen mode
+  const isPOSRoute = location.pathname === '/pos';
 
   if (loading) {
     return (
@@ -30,6 +34,16 @@ export function MainLayout({ children }: MainLayoutProps) {
     return <Navigate to="/login" replace />;
   }
 
+  // For POS route, render fullscreen without sidebar and header
+  if (isPOSRoute) {
+    return (
+      <div className="min-h-screen w-full">
+        {children}
+      </div>
+    );
+  }
+
+  // Normal layout with sidebar for other routes
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar */}
