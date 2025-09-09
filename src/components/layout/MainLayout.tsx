@@ -39,7 +39,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       />
 
       {/* Main Content */}
-      <div className="lg:ml-64">
+      <div className="lg:ml-64 transition-all duration-300 ease-in-out" style={{ marginLeft: 'var(--sidebar-width, 16rem)' }}>
         {/* Header */}
         <header className="bg-white border-b border-gray-200 px-4 py-3 lg:px-6">
           <div className="flex items-center justify-between">

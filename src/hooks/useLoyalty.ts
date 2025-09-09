@@ -10,9 +10,6 @@ export interface LoyaltyTransaction {
   reference_type?: string;
   description?: string;
   created_at: string;
-  client?: {
-    name: string;
-  };
 }
 
 export function useLoyalty() {
@@ -25,10 +22,7 @@ export function useLoyalty() {
       setLoading(true);
       let query = supabase
         .from('loyalty_transactions')
-        .select(`
-          *,
-          client:clients(name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (clientId) {

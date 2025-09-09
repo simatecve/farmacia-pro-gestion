@@ -26,7 +26,6 @@ export default function Fidelizacion() {
   const { toast } = useToast();
 
   const filteredTransactions = transactions.filter(transaction =>
-    transaction.client?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     transaction.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -271,7 +270,7 @@ export default function Fidelizacion() {
                     {new Date(transaction.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="font-medium">
-                    {transaction.client?.name}
+                    Cliente ID: {transaction.client_id}
                   </TableCell>
                   <TableCell>
                     <Badge 
