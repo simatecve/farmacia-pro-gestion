@@ -35,7 +35,7 @@ export function useUserRoles() {
         .from('profiles')
         .select(`
           *,
-          user_roles!inner(
+          user_roles(
             id,
             role,
             created_at,
