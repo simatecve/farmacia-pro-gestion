@@ -80,6 +80,55 @@ export const useSales = () => {
 
       if (saleError) throw saleError;
 
+      // Add loyalty points if client is selected
+      if (saleData.client_id) {
+        try {
+          // Get active loyalty plan
+          const { data: loyaltyPlan } = await supabase
+            .from('loyalty_plans')
+            .select('*')
+            .eq('active', true)
+            .single();
+
+          if (loyaltyPlan) {
+            const pointsEarned = Math.floor(saleData.total_amount * loyaltyPlan.points_per_currency);
+            
+            if (pointsEarned > 0) {
+              // Create loyalty transaction
+              await supabase
+                .from('loyalty_transactions')
+                .insert([{
+                  client_id: saleData.client_id,
+                  transaction_type: 'earn',
+                  points: pointsEarned,
+                  description: `Puntos ganados por compra - ${saleData.sale_number}`,
+                  reference_id: sale.id,
+                  reference_type: 'sale'
+                }]);
+
+              // Update client points
+              const { data: currentClient } = await supabase
+                .from('clients')
+                .select('loyalty_points, total_purchases')
+                .eq('id', saleData.client_id)
+                .single();
+              
+              await supabase
+                .from('clients')
+                .update({ 
+                  loyalty_points: (currentClient?.loyalty_points || 0) + pointsEarned,
+                  total_purchases: (currentClient?.total_purchases || 0) + saleData.total_amount,
+                  last_purchase_date: new Date().toISOString()
+                })
+                .eq('id', saleData.client_id);
+            }
+          }
+        } catch (loyaltyError) {
+          console.error('Error processing loyalty points:', loyaltyError);
+          // Don't fail the entire sale if loyalty points fail
+        }
+      }
+
       // Create sale items
       const saleItems = items.map(item => ({
         sale_id: sale.id,

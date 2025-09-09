@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Package, Plus } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Search, Package, Plus, AlertTriangle } from "lucide-react";
 import { useProductsWithStock, ProductWithStock } from "@/hooks/useProductsWithStock";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProductSearchProps {
   onAddProduct: (product: ProductWithStock) => void;
@@ -14,6 +16,7 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState<ProductWithStock[]>([]);
   const { products, loading } = useProductsWithStock();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (searchTerm.trim() === "") {
@@ -31,9 +34,20 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
   const handleBarcodeSearch = (barcode: string) => {
     const product = products.find(p => p.barcode === barcode);
     if (product) {
-      onAddProduct(product);
+      handleAddProduct(product);
       setSearchTerm("");
     }
+  };
+
+  const handleAddProduct = (product: ProductWithStock) => {
+    if (product.requires_prescription) {
+      toast({
+        title: "⚠️ Producto requiere receta",
+        description: `${product.name} requiere receta médica para su venta.`,
+        variant: "destructive"
+      });
+    }
+    onAddProduct(product);
   };
 
   return (
@@ -93,13 +107,16 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
                     size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      onAddProduct(product);
+                      handleAddProduct(product);
                     }}
                     disabled={(product.current_stock || 0) <= 0}
                     className="ml-2"
                   >
                     <Plus className="h-4 w-4" />
                   </Button>
+                  {product.requires_prescription && (
+                    <AlertTriangle className="h-4 w-4 text-orange-500 ml-1" />
+                  )}
                 </div>
               ))
             )}
