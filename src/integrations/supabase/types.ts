@@ -193,12 +193,18 @@ export type Database = {
           active: boolean
           barcode: string | null
           category_id: string | null
+          code: string | null
+          concentration: string | null
           created_at: string
           description: string | null
+          expiry_date: string | null
           id: string
+          image_url: string | null
+          laboratory: string | null
           max_stock: number
           min_stock: number
           name: string
+          presentation: string | null
           purchase_price: number
           requires_prescription: boolean
           sale_price: number
@@ -210,12 +216,18 @@ export type Database = {
           active?: boolean
           barcode?: string | null
           category_id?: string | null
+          code?: string | null
+          concentration?: string | null
           created_at?: string
           description?: string | null
+          expiry_date?: string | null
           id?: string
+          image_url?: string | null
+          laboratory?: string | null
           max_stock?: number
           min_stock?: number
           name: string
+          presentation?: string | null
           purchase_price?: number
           requires_prescription?: boolean
           sale_price?: number
@@ -227,12 +239,18 @@ export type Database = {
           active?: boolean
           barcode?: string | null
           category_id?: string | null
+          code?: string | null
+          concentration?: string | null
           created_at?: string
           description?: string | null
+          expiry_date?: string | null
           id?: string
+          image_url?: string | null
+          laboratory?: string | null
           max_stock?: number
           min_stock?: number
           name?: string
+          presentation?: string | null
           purchase_price?: number
           requires_prescription?: boolean
           sale_price?: number

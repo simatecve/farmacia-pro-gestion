@@ -7,8 +7,14 @@ export interface Product {
   description: string | null;
   sku: string | null;
   barcode: string | null;
+  code: string | null;
   category_id: string | null;
   unit_type: string;
+  presentation: string | null;
+  concentration: string | null;
+  laboratory: string | null;
+  image_url: string | null;
+  expiry_date: string | null;
   sale_price: number;
   purchase_price: number;
   min_stock: number;

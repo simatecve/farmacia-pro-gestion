@@ -10,9 +10,13 @@ import {
   Settings, 
   UserCheck,
   Search,
-  Bell
+  Bell,
+  Tag,
+  MapPin,
+  LogOut
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 import {
   Sidebar,
@@ -33,8 +37,8 @@ import { Button } from "@/components/ui/button";
 const mainItems = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Productos", url: "/productos", icon: Package },
-  { title: "Categorías", url: "/categorias", icon: Package },
-  { title: "Ubicaciones", url: "/ubicaciones", icon: Package },
+  { title: "Categorías", url: "/categorias", icon: Tag },
+  { title: "Ubicaciones", url: "/ubicaciones", icon: MapPin },
   { title: "Inventario", url: "/inventario", icon: Package },
   { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Proveedores", url: "/proveedores", icon: Truck },
@@ -53,6 +57,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
+  const { signOut } = useAuth();
 
   const isActive = (path: string) => currentPath === path;
   const isMainExpanded = mainItems.some((i) => isActive(i.url));
@@ -75,8 +80,8 @@ export function AppSidebar() {
               <Package className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-sidebar-foreground">FarmaSys</h2>
-              <p className="text-xs text-muted-foreground">Sistema de Gestión</p>
+              <h2 className="text-lg font-bold text-sidebar-foreground">Daalef Farmacia</h2>
+              <p className="text-xs text-muted-foreground">Sistema de Gestión v1.0.0</p>
             </div>
           </div>
         )}
@@ -133,20 +138,40 @@ export function AppSidebar() {
 
       <SidebarFooter className="p-4">
         {!collapsed ? (
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50 animate-fade-in">
-            <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center">
-              <span className="text-xs font-bold text-white">A</span>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-accent/50 animate-fade-in">
+              <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center">
+                <span className="text-xs font-bold text-white">A</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-sidebar-foreground truncate">Admin Usuario</p>
+                <p className="text-xs text-muted-foreground truncate">admin@daalef.com</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">Admin Usuario</p>
-              <p className="text-xs text-muted-foreground truncate">admin@farmasys.com</p>
-            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full justify-start gap-2 text-destructive hover:text-destructive"
+              onClick={() => signOut()}
+            >
+              <LogOut className="w-4 h-4" />
+              Cerrar Sesión
+            </Button>
           </div>
         ) : (
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center">
               <span className="text-xs font-bold text-white">A</span>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-8 h-8 p-0 text-destructive hover:text-destructive"
+              onClick={() => signOut()}
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
           </div>
         )}
       </SidebarFooter>

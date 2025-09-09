@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProducts, type Product } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { Upload, X, Image as ImageIcon } from 'lucide-react';
 
 interface ProductFormProps {
   product?: Product;
@@ -22,8 +24,13 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     description: product?.description || '',
     sku: product?.sku || '',
     barcode: product?.barcode || '',
+    code: product?.code || '',
     category_id: product?.category_id || '',
     unit_type: product?.unit_type || 'unidad',
+    presentation: product?.presentation || '',
+    concentration: product?.concentration || '',
+    laboratory: product?.laboratory || '',
+    expiry_date: product?.expiry_date || '',
     sale_price: product?.sale_price || 0,
     purchase_price: product?.purchase_price || 0,
     min_stock: product?.min_stock || 0,
@@ -32,10 +39,86 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     active: product?.active ?? true
   });
 
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(product?.image_url || null);
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+
   const { createProduct, updateProduct } = useProducts();
   const { categories } = useCategories();
   const { toast } = useToast();
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Error",
+          description: "Por favor seleccione un archivo de imagen válido",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Validate file size (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "La imagen debe ser menor a 5MB",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setImageFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile) return null;
+
+    setUploading(true);
+    try {
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = fileName;
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, imageFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Error",
+        description: "Error subiendo la imagen",
+        variant: "destructive"
+      });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,12 +134,28 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
 
     setSaving(true);
     try {
+      let imageUrl = product?.image_url || null;
+
+      // Upload new image if selected
+      if (imageFile) {
+        const uploadedUrl = await uploadImage();
+        if (uploadedUrl) {
+          imageUrl = uploadedUrl;
+        }
+      }
+
       const productData = {
         ...formData,
         category_id: formData.category_id || null,
         sku: formData.sku || null,
         barcode: formData.barcode || null,
-        description: formData.description || null
+        code: formData.code || null,
+        description: formData.description || null,
+        presentation: formData.presentation || null,
+        concentration: formData.concentration || null,
+        laboratory: formData.laboratory || null,
+        expiry_date: formData.expiry_date || null,
+        image_url: imageUrl
       };
 
       if (product) {
@@ -71,13 +170,19 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
           title: "Éxito",
           description: "Producto creado correctamente"
         });
+        // Reset form
         setFormData({
           name: '',
           description: '',
           sku: '',
           barcode: '',
+          code: '',
           category_id: '',
           unit_type: 'unidad',
+          presentation: '',
+          concentration: '',
+          laboratory: '',
+          expiry_date: '',
           sale_price: 0,
           purchase_price: 0,
           min_stock: 0,
@@ -85,6 +190,8 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
           requires_prescription: false,
           active: true
         });
+        setImageFile(null);
+        setImagePreview(null);
       }
       onSave?.();
     } catch (error) {
@@ -110,7 +217,47 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Imagen del producto */}
+          <div>
+            <Label>Imagen del Producto</Label>
+            <div className="mt-2">
+              {imagePreview ? (
+                <div className="relative w-32 h-32 border-2 border-dashed border-border rounded-lg overflow-hidden">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-1 right-1 w-6 h-6 p-0"
+                    onClick={removeImage}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="w-32 h-32 border-2 border-dashed border-border rounded-lg flex items-center justify-center cursor-pointer hover:border-primary transition-colors">
+                  <label htmlFor="image-upload" className="cursor-pointer text-center">
+                    <ImageIcon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                    <span className="text-sm text-muted-foreground">Subir imagen</span>
+                  </label>
+                  <input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Información básica */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="name">Nombre *</Label>
@@ -124,12 +271,34 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
             </div>
             
             <div>
+              <Label htmlFor="code">Código</Label>
+              <Input
+                id="code"
+                value={formData.code}
+                onChange={(e) => updateField('code', e.target.value)}
+                placeholder="Código del producto"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
               <Label htmlFor="sku">SKU</Label>
               <Input
                 id="sku"
                 value={formData.sku}
                 onChange={(e) => updateField('sku', e.target.value)}
                 placeholder="Código SKU"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="barcode">Código de Barras</Label>
+              <Input
+                id="barcode"
+                value={formData.barcode}
+                onChange={(e) => updateField('barcode', e.target.value)}
+                placeholder="Código de barras"
               />
             </div>
           </div>
@@ -145,17 +314,40 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Información farmacéutica */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="barcode">Código de Barras</Label>
+              <Label htmlFor="presentation">Presentación</Label>
               <Input
-                id="barcode"
-                value={formData.barcode}
-                onChange={(e) => updateField('barcode', e.target.value)}
-                placeholder="Código de barras"
+                id="presentation"
+                value={formData.presentation}
+                onChange={(e) => updateField('presentation', e.target.value)}
+                placeholder="Tabletas, Cápsulas, etc."
               />
             </div>
 
+            <div>
+              <Label htmlFor="concentration">Concentración</Label>
+              <Input
+                id="concentration"
+                value={formData.concentration}
+                onChange={(e) => updateField('concentration', e.target.value)}
+                placeholder="500mg, 250ml, etc."
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="laboratory">Laboratorio</Label>
+              <Input
+                id="laboratory"
+                value={formData.laboratory}
+                onChange={(e) => updateField('laboratory', e.target.value)}
+                placeholder="Nombre del laboratorio"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="category">Categoría</Label>
               <Select value={formData.category_id} onValueChange={(value) => updateField('category_id', value)}>
@@ -171,8 +363,19 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                 </SelectContent>
               </Select>
             </div>
+
+            <div>
+              <Label htmlFor="expiry_date">Fecha de Vencimiento</Label>
+              <Input
+                id="expiry_date"
+                type="date"
+                value={formData.expiry_date}
+                onChange={(e) => updateField('expiry_date', e.target.value)}
+              />
+            </div>
           </div>
 
+          {/* Precios y stock */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Label htmlFor="unit_type">Tipo de Unidad</Label>
@@ -265,7 +468,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
           </div>
 
           <div className="flex gap-2">
-            <Button type="submit" disabled={saving}>
+            <Button type="submit" disabled={saving || uploading}>
               {saving ? 'Guardando...' : (product ? 'Actualizar' : 'Crear')}
             </Button>
             {onCancel && (
