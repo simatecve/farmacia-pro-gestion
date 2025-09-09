@@ -21,7 +21,8 @@ import {
   Gift,
   Bell,
   History,
-  Activity
+  Activity,
+  RotateCcw
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -38,7 +39,7 @@ const salesItems = [
   { title: "Punto de Venta", url: "/pos", icon: CreditCard },
   { title: "Control de Caja", url: "/caja", icon: DollarSign },
   { title: "Ventas", url: "/ventas", icon: ShoppingCart },
-  { title: "Historial de Ventas", url: "/historial-ventas", icon: History },
+  { title: "Devoluciones", url: "/devoluciones", icon: RotateCcw },
   { title: "Reportes", url: "/reportes", icon: BarChart3 },
 ];
 

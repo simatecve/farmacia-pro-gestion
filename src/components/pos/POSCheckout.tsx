@@ -6,27 +6,37 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { CreditCard, DollarSign, Smartphone, User, UserPlus } from "lucide-react";
+import { CreditCard, DollarSign, Smartphone, User, UserPlus, Percent } from "lucide-react";
 import { SaleItem } from "@/hooks/useSales";
 import { useClients } from "@/hooks/useClients";
+import { CashCalculator } from "./CashCalculator";
 
 interface POSCheckoutProps {
   items: SaleItem[];
   total: number;
+  subtotal: number;
+  discount: number;
   onProcessSale: (saleData: {
     client_id?: string;
     payment_method: string;
     notes?: string;
+    cash_received?: number;
+    change_amount?: number;
   }) => Promise<void>;
+  onDiscountChange: (discount: number) => void;
   disabled: boolean;
 }
 
-export function POSCheckout({ items, total, onProcessSale, disabled }: POSCheckoutProps) {
+export function POSCheckout({ items, total, subtotal, discount, onProcessSale, onDiscountChange, disabled }: POSCheckoutProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [clientId, setClientId] = useState("");
   const [notes, setNotes] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [discountType, setDiscountType] = useState<'amount' | 'percentage'>('amount');
+  const [cashReceived, setCashReceived] = useState(0);
+  const [changeAmount, setChangeAmount] = useState(0);
   const { clients } = useClients();
 
   // Set default client to CONSUMIDOR FINAL
@@ -37,20 +47,46 @@ export function POSCheckout({ items, total, onProcessSale, disabled }: POSChecko
     }
   }, [clients]);
 
+  const handleDiscountChange = (value: string) => {
+    const amount = parseFloat(value) || 0;
+    setDiscountAmount(amount);
+    
+    let finalDiscount = 0;
+    if (discountType === 'percentage') {
+      finalDiscount = (subtotal * amount) / 100;
+    } else {
+      finalDiscount = amount;
+    }
+    
+    onDiscountChange(finalDiscount);
+  };
+
+  const handleCashAmountChange = (amountPaid: number, change: number) => {
+    setCashReceived(amountPaid);
+    setChangeAmount(change);
+  };
+
   const handleProcessSale = async () => {
     if (!paymentMethod) return;
+    if (paymentMethod === 'cash' && cashReceived < total) return;
 
     setProcessing(true);
     try {
       await onProcessSale({
         client_id: clientId || undefined,
         payment_method: paymentMethod,
-        notes: notes || undefined
+        notes: notes || undefined,
+        cash_received: paymentMethod === 'cash' ? cashReceived : undefined,
+        change_amount: paymentMethod === 'cash' ? changeAmount : undefined
       });
       
       // Reset form
       setPaymentMethod("");
       setNotes("");
+      setDiscountAmount(0);
+      setCashReceived(0);
+      setChangeAmount(0);
+      onDiscountChange(0);
       // Keep default client selected
       const defaultClient = clients.find(client => client.name === 'CONSUMIDOR FINAL');
       setClientId(defaultClient?.id || "");
@@ -79,7 +115,43 @@ export function POSCheckout({ items, total, onProcessSale, disabled }: POSChecko
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Client Selection */}
+        {/* Discount Section */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium flex items-center gap-2">
+            <Percent className="h-3 w-3" />
+            Descuento
+          </Label>
+          <div className="flex gap-2">
+            <Select 
+              value={discountType} 
+              onValueChange={(value: 'amount' | 'percentage') => setDiscountType(value)}
+            >
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="amount">$</SelectItem>
+                <SelectItem value="percentage">%</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              max={discountType === 'percentage' ? "100" : undefined}
+              placeholder="0"
+              value={discountAmount || ""}
+              onChange={(e) => handleDiscountChange(e.target.value)}
+              className="flex-1"
+            />
+          </div>
+          {discount > 0 && (
+            <p className="text-sm text-green-600">
+              Descuento aplicado: ${discount.toFixed(2)}
+            </p>
+          )}
+        </div>
+
         {/* Client Selection */}
         <div className="space-y-2">
           <Label className="text-sm font-medium flex items-center gap-2">
@@ -117,10 +189,24 @@ export function POSCheckout({ items, total, onProcessSale, disabled }: POSChecko
         </div>
 
         {/* Total Display */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
-          <p className="text-xs text-muted-foreground mb-1">Total a Pagar</p>
-          <p className="text-2xl font-bold text-primary">${total.toFixed(2)}</p>
-          <p className="text-xs text-muted-foreground mt-1">{items.length} productos</p>
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Subtotal:</span>
+              <span>${subtotal.toFixed(2)}</span>
+            </div>
+            {discount > 0 && (
+              <div className="flex justify-between text-sm text-green-600">
+                <span>Descuento:</span>
+                <span>-${discount.toFixed(2)}</span>
+              </div>
+            )}
+            <div className="flex justify-between border-t pt-2">
+              <span className="font-medium">Total a Pagar:</span>
+              <span className="text-xl font-bold text-primary">${total.toFixed(2)}</span>
+            </div>
+            <p className="text-xs text-muted-foreground text-center">{items.length} productos</p>
+          </div>
         </div>
 
         {/* Process Sale Button */}
@@ -141,7 +227,15 @@ export function POSCheckout({ items, total, onProcessSale, disabled }: POSChecko
             </DialogHeader>
             <div className="space-y-6">
               <div className="text-center p-6 bg-accent/20 rounded-lg">
-                <p className="text-3xl font-bold text-primary">${total.toFixed(2)}</p>
+                <div className="space-y-1">
+                  {discount > 0 && (
+                    <>
+                      <p className="text-sm text-muted-foreground">Subtotal: ${subtotal.toFixed(2)}</p>
+                      <p className="text-sm text-green-600">Descuento: -${discount.toFixed(2)}</p>
+                    </>
+                  )}
+                  <p className="text-3xl font-bold text-primary">${total.toFixed(2)}</p>
+                </div>
                 <p className="text-sm text-muted-foreground">{items.length} productos</p>
                 <p className="text-sm font-medium mt-2">{selectedClient?.name}</p>
               </div>
@@ -168,6 +262,14 @@ export function POSCheckout({ items, total, onProcessSale, disabled }: POSChecko
                 </div>
               </div>
 
+              {/* Cash Calculator for cash payments */}
+              {paymentMethod === 'cash' && (
+                <CashCalculator
+                  total={total}
+                  onAmountChange={handleCashAmountChange}
+                />
+              )}
+
               <div className="space-y-2">
                 <Label htmlFor="notes">Notas (Opcional)</Label>
                 <Textarea
@@ -190,7 +292,11 @@ export function POSCheckout({ items, total, onProcessSale, disabled }: POSChecko
                 </Button>
                 <Button
                   onClick={handleProcessSale}
-                  disabled={!paymentMethod || processing}
+                  disabled={
+                    !paymentMethod || 
+                    processing || 
+                    (paymentMethod === 'cash' && cashReceived < total)
+                  }
                   className="flex-1"
                 >
                   {processing ? "Procesando..." : "Confirmar"}

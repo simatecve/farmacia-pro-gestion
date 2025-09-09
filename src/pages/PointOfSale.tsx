@@ -18,6 +18,7 @@ export default function PointOfSale() {
   const [receiptModalOpen, setReceiptModalOpen] = useState(false);
   const [completedSale, setCompletedSale] = useState<Sale | null>(null);
   const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [generalDiscount, setGeneralDiscount] = useState(0);
   
   const { createSale, generateSaleNumber } = useSales();
   const { clients } = useClients();
@@ -87,12 +88,13 @@ export default function PointOfSale() {
 
   const calculateTotals = () => {
     const subtotal = cartItems.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
-    const discount = cartItems.reduce((sum, item) => sum + item.discount_amount, 0);
-    const taxableAmount = subtotal - discount;
+    const itemDiscounts = cartItems.reduce((sum, item) => sum + item.discount_amount, 0);
+    const totalDiscount = itemDiscounts + generalDiscount;
+    const taxableAmount = subtotal - totalDiscount;
     const tax = taxableAmount * 0.16; // 16% IVA
     const total = taxableAmount + tax;
 
-    return { subtotal, discount, tax, total };
+    return { subtotal, discount: totalDiscount, tax, total };
   };
 
   const { subtotal, discount, tax, total } = calculateTotals();
@@ -101,6 +103,8 @@ export default function PointOfSale() {
     client_id?: string;
     payment_method: string;
     notes?: string;
+    cash_received?: number;
+    change_amount?: number;
   }) => {
     try {
       const sale = {
@@ -224,7 +228,10 @@ export default function PointOfSale() {
               <POSCheckout
                 items={cartItems}
                 total={total}
+                subtotal={subtotal}
+                discount={discount}
                 onProcessSale={processSale}
+                onDiscountChange={setGeneralDiscount}
                 disabled={cartItems.length === 0}
               />
             </div>
