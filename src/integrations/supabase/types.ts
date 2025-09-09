@@ -38,6 +38,135 @@ export type Database = {
         }
         Relationships: []
       }
+      client_campaigns: {
+        Row: {
+          active: boolean
+          campaign_type: string
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          message_template: string | null
+          name: string
+          start_date: string | null
+          target_criteria: Json | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          campaign_type: string
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          message_template?: string | null
+          name: string
+          start_date?: string | null
+          target_criteria?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          campaign_type?: string
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          message_template?: string | null
+          name?: string
+          start_date?: string | null
+          target_criteria?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      client_reminders: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          message: string | null
+          reminder_date: string
+          reminder_type: string
+          sent: boolean
+          sent_at: string | null
+          title: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          reminder_date: string
+          reminder_type: string
+          sent?: boolean
+          sent_at?: string | null
+          title: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          message?: string | null
+          reminder_date?: string
+          reminder_type?: string
+          sent?: boolean
+          sent_at?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      clients: {
+        Row: {
+          address: string | null
+          birth_date: string | null
+          created_at: string
+          email: string | null
+          gender: string | null
+          id: string
+          identification_number: string | null
+          last_purchase_date: string | null
+          loyalty_points: number
+          name: string
+          notes: string | null
+          phone: string | null
+          total_purchases: number
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          birth_date?: string | null
+          created_at?: string
+          email?: string | null
+          gender?: string | null
+          id?: string
+          identification_number?: string | null
+          last_purchase_date?: string | null
+          loyalty_points?: number
+          name: string
+          notes?: string | null
+          phone?: string | null
+          total_purchases?: number
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          birth_date?: string | null
+          created_at?: string
+          email?: string | null
+          gender?: string | null
+          id?: string
+          identification_number?: string | null
+          last_purchase_date?: string | null
+          loyalty_points?: number
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          total_purchases?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           available_stock: number | null
@@ -188,6 +317,39 @@ export type Database = {
         }
         Relationships: []
       }
+      loyalty_transactions: {
+        Row: {
+          client_id: string
+          created_at: string
+          description: string | null
+          id: string
+          points: number
+          reference_id: string | null
+          reference_type: string | null
+          transaction_type: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          points: number
+          reference_id?: string | null
+          reference_type?: string | null
+          transaction_type: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          transaction_type?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           active: boolean
@@ -267,6 +429,126 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sale_items: {
+        Row: {
+          created_at: string
+          discount_amount: number
+          id: string
+          product_id: string
+          quantity: number
+          sale_id: string
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          product_id: string
+          quantity: number
+          sale_id: string
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          product_id?: string
+          quantity?: number
+          sale_id?: string
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: []
+      }
+      sales: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          discount_amount: number
+          id: string
+          notes: string | null
+          payment_method: string | null
+          sale_number: string
+          status: string
+          tax_amount: number
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          sale_number: string
+          status?: string
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          sale_number?: string
+          status?: string
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      suppliers: {
+        Row: {
+          active: boolean
+          address: string | null
+          contact_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          payment_terms: string | null
+          phone: string | null
+          tax_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          payment_terms?: string | null
+          phone?: string | null
+          tax_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {

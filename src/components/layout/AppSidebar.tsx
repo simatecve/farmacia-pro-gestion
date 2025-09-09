@@ -13,26 +13,53 @@ import {
   MapPin,
   LogOut,
   Menu,
-  X
+  X,
+  CreditCard,
+  TrendingUp,
+  Star,
+  Gift,
+  Bell,
+  History,
+  Activity
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-const mainItems = [
+// PANEL PRINCIPAL
+const dashboardItems = [
   { title: "Dashboard", url: "/", icon: Home },
+];
+
+// VENTAS Y POS
+const salesItems = [
+  { title: "Punto de Venta", url: "/pos", icon: CreditCard },
+  { title: "Ventas", url: "/ventas", icon: ShoppingCart },
+  { title: "Historial de Ventas", url: "/historial-ventas", icon: History },
+  { title: "Reportes", url: "/reportes", icon: BarChart3 },
+];
+
+// INVENTARIO
+const inventoryItems = [
   { title: "Productos", url: "/productos", icon: Package },
   { title: "Categorías", url: "/categorias", icon: Tag },
   { title: "Ubicaciones", url: "/ubicaciones", icon: MapPin },
   { title: "Inventario", url: "/inventario", icon: Package2 },
-  { title: "Clientes", url: "/clientes", icon: Users },
-  { title: "Proveedores", url: "/proveedores", icon: Truck },
-  { title: "Ventas", url: "/ventas", icon: ShoppingCart },
   { title: "Compras", url: "/compras", icon: Package },
-  { title: "Reportes", url: "/reportes", icon: BarChart3 },
 ];
 
+// GESTIÓN Y CRM
+const crmItems = [
+  { title: "Clientes", url: "/clientes", icon: Users },
+  { title: "Proveedores", url: "/proveedores", icon: Truck },
+  { title: "Programa Fidelización", url: "/fidelizacion", icon: Star },
+  { title: "Gestión de Clientes", url: "/gestion-clientes", icon: Activity },
+  { title: "Campañas", url: "/campanias", icon: Gift },
+  { title: "Recordatorios", url: "/recordatorios", icon: Bell },
+];
+
+// ADMINISTRACIÓN
 const adminItems = [
   { title: "Usuarios", url: "/usuarios", icon: UserCheck },
   { title: "Configuración", url: "/configuracion", icon: Settings },
@@ -91,13 +118,13 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
 
         {/* Navigation */}
         <div className="flex-1 overflow-y-auto p-4">
-          {/* Main Items */}
+          {/* Panel Principal */}
           <div className="mb-6">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              Gestión Principal
+            <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-3">
+              Panel Principal
             </h3>
             <nav className="space-y-1">
-              {mainItems.map((item) => (
+              {dashboardItems.map((item) => (
                 <NavLink
                   key={item.url}
                   to={item.url}
@@ -106,8 +133,8 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
                     cn(
                       "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                       isActive
-                        ? "bg-blue-50 text-blue-700 border border-blue-200"
-                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     )
                   }
                 >
@@ -118,9 +145,90 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
             </nav>
           </div>
 
-          {/* Admin Items */}
+          {/* Ventas y POS */}
           <div className="mb-6">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+            <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider mb-3">
+              Ventas y POS
+            </h3>
+            <nav className="space-y-1">
+              {salesItems.map((item) => (
+                <NavLink
+                  key={item.url}
+                  to={item.url}
+                  onClick={() => window.innerWidth < 1024 && onToggle()}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-secondary/10 text-secondary border border-secondary/20"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    )
+                  }
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  <span>{item.title}</span>
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+
+          {/* Inventario */}
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-primary uppercase tracking-wider mb-3">
+              Inventario
+            </h3>
+            <nav className="space-y-1">
+              {inventoryItems.map((item) => (
+                <NavLink
+                  key={item.url}
+                  to={item.url}
+                  onClick={() => window.innerWidth < 1024 && onToggle()}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    )
+                  }
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  <span>{item.title}</span>
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+
+          {/* Gestión y CRM */}
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider mb-3">
+              Gestión y CRM
+            </h3>
+            <nav className="space-y-1">
+              {crmItems.map((item) => (
+                <NavLink
+                  key={item.url}
+                  to={item.url}
+                  onClick={() => window.innerWidth < 1024 && onToggle()}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-secondary/10 text-secondary border border-secondary/20"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    )
+                  }
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0" />
+                  <span>{item.title}</span>
+                </NavLink>
+              ))}
+            </nav>
+          </div>
+
+          {/* Administración */}
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
               Administración
             </h3>
             <nav className="space-y-1">
@@ -133,8 +241,8 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
                     cn(
                       "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                       isActive
-                        ? "bg-blue-50 text-blue-700 border border-blue-200"
-                        : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                        ? "bg-accent text-accent-foreground border border-border"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                     )
                   }
                 >
@@ -147,21 +255,21 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 mb-3">
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-              <span className="text-xs font-bold text-white">A</span>
+        <div className="p-4 border-t border-border">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-accent mb-3">
+            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+              <span className="text-xs font-bold text-primary-foreground">A</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">Admin Usuario</p>
-              <p className="text-xs text-gray-500 truncate">admin@daalef.com</p>
+              <p className="text-sm font-medium text-foreground truncate">Admin Usuario</p>
+              <p className="text-xs text-muted-foreground truncate">admin@daalef.com</p>
             </div>
           </div>
           
           <Button
             variant="outline"
             size="sm"
-            className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="w-full justify-start gap-2 text-destructive hover:text-destructive-foreground hover:bg-destructive"
             onClick={signOut}
           >
             <LogOut className="w-4 h-4" />

@@ -15,6 +15,10 @@ import Proveedores from "./pages/Proveedores";
 import Ventas from "./pages/Ventas";
 import Compras from "./pages/Compras";
 import Reportes from "./pages/Reportes";
+import Fidelizacion from "./pages/Fidelizacion";
+import GestionClientes from "./pages/GestionClientes";
+import Campanias from "./pages/Campanias";
+import Recordatorios from "./pages/Recordatorios";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -39,6 +43,10 @@ const App = () => (
             <Route path="/ventas" element={<MainLayout><Ventas /></MainLayout>} />
             <Route path="/compras" element={<MainLayout><Compras /></MainLayout>} />
             <Route path="/reportes" element={<MainLayout><Reportes /></MainLayout>} />
+            <Route path="/fidelizacion" element={<MainLayout><Fidelizacion /></MainLayout>} />
+            <Route path="/gestion-clientes" element={<MainLayout><GestionClientes /></MainLayout>} />
+            <Route path="/campanias" element={<MainLayout><Campanias /></MainLayout>} />
+            <Route path="/recordatorios" element={<MainLayout><Recordatorios /></MainLayout>} />
             <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
           </Routes>
         </AuthProvider>
