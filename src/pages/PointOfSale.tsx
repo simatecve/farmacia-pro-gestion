@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Store, Clock, DollarSign, Zap, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { ProductWithStock } from "@/hooks/useProductsWithStock";
 
 export default function PointOfSale() {
   const [cartItems, setCartItems] = useState<SaleItem[]>([]);
@@ -31,7 +32,7 @@ export default function PointOfSale() {
     }
   }, [clients]);
 
-  const addToCart = (product: any) => {
+  const addToCart = (product: ProductWithStock) => {
     const existingItemIndex = cartItems.findIndex(item => item.product_id === product.id);
     
     if (existingItemIndex >= 0) {

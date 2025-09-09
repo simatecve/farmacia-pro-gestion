@@ -4,26 +4,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, Package, Plus } from "lucide-react";
-import { useProducts } from "@/hooks/useProducts";
-
-interface Product {
-  id: string;
-  name: string;
-  sku?: string;
-  barcode?: string;
-  sale_price: number;
-  current_stock?: number;
-  unit_type: string;
-}
+import { useProductsWithStock, ProductWithStock } from "@/hooks/useProductsWithStock";
 
 interface ProductSearchProps {
-  onAddProduct: (product: Product) => void;
+  onAddProduct: (product: ProductWithStock) => void;
 }
 
 export function ProductSearch({ onAddProduct }: ProductSearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const { products, loading } = useProducts();
+  const [filteredProducts, setFilteredProducts] = useState<ProductWithStock[]>([]);
+  const { products, loading } = useProductsWithStock();
 
   useEffect(() => {
     if (searchTerm.trim() === "") {
