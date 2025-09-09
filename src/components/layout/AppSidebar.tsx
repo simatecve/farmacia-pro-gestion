@@ -13,6 +13,7 @@ import {
   MapPin,
   LogOut,
   DollarSign,
+  Menu,
   X,
   CreditCard,
   TrendingUp,

@@ -9,7 +9,7 @@ export interface AuditLog {
   record_id?: string;
   old_values?: any;
   new_values?: any;
-  ip_address?: string;
+  ip_address?: any;
   user_agent?: string;
   created_at: string;
 }

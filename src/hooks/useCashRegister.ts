@@ -11,7 +11,7 @@ export interface CashRegisterSession {
   total_cash: number;
   total_card: number;
   total_other: number;
-  status: 'open' | 'closed';
+  status: string;
   opened_at: string;
   closed_at?: string;
   notes?: string;
