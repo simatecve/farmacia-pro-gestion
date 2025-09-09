@@ -13,7 +13,7 @@ import {
   MapPin,
   LogOut,
   DollarSign,
-  Menu,
+  ChevronLeft,
   X,
   CreditCard,
   TrendingUp,
@@ -123,7 +123,7 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
                 className="hidden lg:flex"
                 title={isCollapsed ? "Expandir menú" : "Contraer menú"}
               >
-                <Menu className={cn("w-4 h-4 transition-transform duration-200", isCollapsed && "rotate-180")} />
+                <ChevronLeft className={cn("w-4 h-4 transition-transform duration-200", isCollapsed && "rotate-180")} />
               </Button>
               <Button
                 variant="ghost"
