@@ -4,12 +4,17 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
+import { MainLayout } from "@/components/layout/MainLayout";
 import Index from "./pages/Index";
 import Productos from "./pages/Productos";
 import Categorias from "./pages/Categorias";
 import Ubicaciones from "./pages/Ubicaciones";
 import Inventario from "./pages/Inventario";
+import Clientes from "./pages/Clientes";
+import Proveedores from "./pages/Proveedores";
+import Ventas from "./pages/Ventas";
+import Compras from "./pages/Compras";
+import Reportes from "./pages/Reportes";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -24,36 +29,17 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={
-              <AuthenticatedLayout>
-                <Index />
-              </AuthenticatedLayout>
-            } />
-            <Route path="/productos" element={
-              <AuthenticatedLayout>
-                <Productos />
-              </AuthenticatedLayout>
-            } />
-            <Route path="/categorias" element={
-              <AuthenticatedLayout>
-                <Categorias />
-              </AuthenticatedLayout>
-            } />
-            <Route path="/ubicaciones" element={
-              <AuthenticatedLayout>
-                <Ubicaciones />
-              </AuthenticatedLayout>
-            } />
-            <Route path="/inventario" element={
-              <AuthenticatedLayout>
-                <Inventario />
-              </AuthenticatedLayout>
-            } />
-            <Route path="*" element={
-              <AuthenticatedLayout>
-                <NotFound />
-              </AuthenticatedLayout>
-            } />
+            <Route path="/" element={<MainLayout><Index /></MainLayout>} />
+            <Route path="/productos" element={<MainLayout><Productos /></MainLayout>} />
+            <Route path="/categorias" element={<MainLayout><Categorias /></MainLayout>} />
+            <Route path="/ubicaciones" element={<MainLayout><Ubicaciones /></MainLayout>} />
+            <Route path="/inventario" element={<MainLayout><Inventario /></MainLayout>} />
+            <Route path="/clientes" element={<MainLayout><Clientes /></MainLayout>} />
+            <Route path="/proveedores" element={<MainLayout><Proveedores /></MainLayout>} />
+            <Route path="/ventas" element={<MainLayout><Ventas /></MainLayout>} />
+            <Route path="/compras" element={<MainLayout><Compras /></MainLayout>} />
+            <Route path="/reportes" element={<MainLayout><Reportes /></MainLayout>} />
+            <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
