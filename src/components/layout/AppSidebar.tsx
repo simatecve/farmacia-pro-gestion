@@ -12,7 +12,7 @@ import {
   Tag,
   MapPin,
   LogOut,
-  Menu,
+  DollarSign,
   X,
   CreditCard,
   TrendingUp,
@@ -35,6 +35,7 @@ const dashboardItems = [
 // VENTAS Y POS
 const salesItems = [
   { title: "Punto de Venta", url: "/pos", icon: CreditCard },
+  { title: "Control de Caja", url: "/caja", icon: DollarSign },
   { title: "Ventas", url: "/ventas", icon: ShoppingCart },
   { title: "Historial de Ventas", url: "/historial-ventas", icon: History },
   { title: "Reportes", url: "/reportes", icon: BarChart3 },
@@ -62,6 +63,7 @@ const crmItems = [
 // ADMINISTRACIÓN
 const adminItems = [
   { title: "Usuarios", url: "/usuarios", icon: UserCheck },
+  { title: "Auditoría", url: "/auditoria", icon: Activity },
   { title: "Configuración", url: "/configuracion", icon: Settings },
 ];
 

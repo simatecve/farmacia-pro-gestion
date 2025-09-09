@@ -19,6 +19,8 @@ import Fidelizacion from "./pages/Fidelizacion";
 import GestionClientes from "./pages/GestionClientes";
 import Campanias from "./pages/Campanias";
 import Recordatorios from "./pages/Recordatorios";
+import CashRegister from "./pages/CashRegister";
+import Auditoria from "./pages/Auditoria";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 
@@ -47,6 +49,8 @@ const App = () => (
             <Route path="/gestion-clientes" element={<MainLayout><GestionClientes /></MainLayout>} />
             <Route path="/campanias" element={<MainLayout><Campanias /></MainLayout>} />
             <Route path="/recordatorios" element={<MainLayout><Recordatorios /></MainLayout>} />
+            <Route path="/caja" element={<MainLayout><CashRegister /></MainLayout>} />
+            <Route path="/auditoria" element={<MainLayout><Auditoria /></MainLayout>} />
             <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
           </Routes>
         </AuthProvider>

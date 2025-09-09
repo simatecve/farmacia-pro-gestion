@@ -8,9 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Star, Plus, Minus, TrendingUp, Gift } from "lucide-react";
+import { Search, Star, Plus, Minus, TrendingUp, Gift, Settings } from "lucide-react";
 import { useLoyalty } from "@/hooks/useLoyalty";
 import { useClients } from "@/hooks/useClients";
+import { useLoyaltyPlans } from "@/hooks/useLoyaltyPlans";
+import { LoyaltyPlanForm } from "@/components/loyalty/LoyaltyPlanForm";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Fidelizacion() {
@@ -23,6 +25,7 @@ export default function Fidelizacion() {
   
   const { transactions, loading, addPoints, redeemPoints, refreshTransactions } = useLoyalty();
   const { clients } = useClients();
+  const { plans, activePlan, refreshPlans } = useLoyaltyPlans();
   const { toast } = useToast();
 
   const filteredTransactions = transactions.filter(transaction =>
@@ -110,13 +113,15 @@ export default function Fidelizacion() {
           <h1 className="text-3xl font-bold text-foreground">Programa de Fidelización</h1>
           <p className="text-muted-foreground">Gestiona los puntos de fidelidad de tus clientes</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Star className="w-4 h-4" />
-              Gestionar Puntos
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <LoyaltyPlanForm onSuccess={refreshPlans} />
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <Star className="w-4 h-4" />
+                Gestionar Puntos
+              </Button>
+            </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Gestionar Puntos de Fidelidad</DialogTitle>
@@ -186,6 +191,38 @@ export default function Fidelizacion() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Plan Configuration Section */}
+      {activePlan && (
+        <Card className="border-primary">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary">
+              <Settings className="w-5 h-5" />
+              Plan Activo: {activePlan.name}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Puntos por $1</p>
+                <p className="text-lg font-bold">{activePlan.points_per_currency}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Valor por punto</p>
+                <p className="text-lg font-bold">${activePlan.currency_per_point.toFixed(3)}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Compra mínima</p>
+                <p className="text-lg font-bold">${activePlan.min_purchase_for_points}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Puntos bienvenida</p>
+                <p className="text-lg font-bold">{activePlan.welcome_points}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card>
