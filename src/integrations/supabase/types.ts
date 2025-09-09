@@ -14,6 +14,135 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts_receivable: {
+        Row: {
+          amount: number
+          amount_paid: number
+          balance: number
+          client_id: string
+          created_at: string
+          due_date: string
+          id: string
+          notes: string | null
+          sale_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          amount_paid?: number
+          balance: number
+          client_id: string
+          created_at?: string
+          due_date: string
+          id?: string
+          notes?: string | null
+          sale_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          amount_paid?: number
+          balance?: number
+          client_id?: string
+          created_at?: string
+          due_date?: string
+          id?: string
+          notes?: string | null
+          sale_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string | null
+          table_name: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      cash_register_sessions: {
+        Row: {
+          closed_at: string | null
+          closing_amount: number | null
+          id: string
+          notes: string | null
+          opened_at: string
+          opening_amount: number
+          register_name: string
+          status: string
+          total_card: number
+          total_cash: number
+          total_other: number
+          total_sales: number
+          user_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closing_amount?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opening_amount?: number
+          register_name?: string
+          status?: string
+          total_card?: number
+          total_cash?: number
+          total_other?: number
+          total_sales?: number
+          user_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          closing_amount?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opening_amount?: number
+          register_name?: string
+          status?: string
+          total_card?: number
+          total_cash?: number
+          total_other?: number
+          total_sales?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           created_at: string
@@ -317,6 +446,57 @@ export type Database = {
         }
         Relationships: []
       }
+      loyalty_plans: {
+        Row: {
+          active: boolean
+          birthday_points: number
+          created_at: string
+          currency_per_point: number
+          description: string | null
+          id: string
+          min_purchase_for_points: number
+          name: string
+          points_expiry_days: number | null
+          points_per_currency: number
+          referral_points: number
+          tier_requirements: Json | null
+          updated_at: string
+          welcome_points: number
+        }
+        Insert: {
+          active?: boolean
+          birthday_points?: number
+          created_at?: string
+          currency_per_point?: number
+          description?: string | null
+          id?: string
+          min_purchase_for_points?: number
+          name: string
+          points_expiry_days?: number | null
+          points_per_currency?: number
+          referral_points?: number
+          tier_requirements?: Json | null
+          updated_at?: string
+          welcome_points?: number
+        }
+        Update: {
+          active?: boolean
+          birthday_points?: number
+          created_at?: string
+          currency_per_point?: number
+          description?: string | null
+          id?: string
+          min_purchase_for_points?: number
+          name?: string
+          points_expiry_days?: number | null
+          points_per_currency?: number
+          referral_points?: number
+          tier_requirements?: Json | null
+          updated_at?: string
+          welcome_points?: number
+        }
+        Relationships: []
+      }
       loyalty_transactions: {
         Row: {
           client_id: string
@@ -347,6 +527,33 @@ export type Database = {
           reference_id?: string | null
           reference_type?: string | null
           transaction_type?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          payment_method: string
+          reference_number: string | null
+          sale_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          payment_method: string
+          reference_number?: string | null
+          sale_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          payment_method?: string
+          reference_number?: string | null
+          sale_id?: string
         }
         Relationships: []
       }
@@ -429,6 +636,108 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      promotions: {
+        Row: {
+          active: boolean
+          applicable_categories: Json | null
+          applicable_products: Json | null
+          created_at: string
+          description: string | null
+          discount_value: number
+          end_date: string
+          id: string
+          max_discount_amount: number | null
+          min_purchase_amount: number | null
+          name: string
+          promotion_type: string
+          start_date: string
+          updated_at: string
+          usage_count: number
+          usage_limit: number | null
+        }
+        Insert: {
+          active?: boolean
+          applicable_categories?: Json | null
+          applicable_products?: Json | null
+          created_at?: string
+          description?: string | null
+          discount_value?: number
+          end_date: string
+          id?: string
+          max_discount_amount?: number | null
+          min_purchase_amount?: number | null
+          name: string
+          promotion_type: string
+          start_date: string
+          updated_at?: string
+          usage_count?: number
+          usage_limit?: number | null
+        }
+        Update: {
+          active?: boolean
+          applicable_categories?: Json | null
+          applicable_products?: Json | null
+          created_at?: string
+          description?: string | null
+          discount_value?: number
+          end_date?: string
+          id?: string
+          max_discount_amount?: number | null
+          min_purchase_amount?: number | null
+          name?: string
+          promotion_type?: string
+          start_date?: string
+          updated_at?: string
+          usage_count?: number
+          usage_limit?: number | null
+        }
+        Relationships: []
+      }
+      refunds: {
+        Row: {
+          approved_by: string | null
+          client_id: string | null
+          created_at: string
+          id: string
+          items_refunded: Json
+          processed_at: string | null
+          refund_amount: number
+          refund_method: string
+          refund_reason: string
+          sale_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          approved_by?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          items_refunded: Json
+          processed_at?: string | null
+          refund_amount: number
+          refund_method: string
+          refund_reason: string
+          sale_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          approved_by?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          items_refunded?: Json
+          processed_at?: string | null
+          refund_amount?: number
+          refund_method?: string
+          refund_reason?: string
+          sale_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       sale_items: {
         Row: {
