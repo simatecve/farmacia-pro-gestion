@@ -35,12 +35,30 @@ export function useUserRoles() {
         .from('profiles')
         .select(`
           *,
-          user_roles:user_roles(*)
+          user_roles!inner(
+            id,
+            role,
+            created_at,
+            created_by,
+            active
+          )
         `)
         .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
-      setUsers(profiles || []);
+      
+      // Transform the data to match our interface
+      const transformedUsers: UserProfile[] = profiles?.map(profile => ({
+        id: profile.id,
+        email: profile.email,
+        full_name: profile.full_name,
+        avatar_url: profile.avatar_url,
+        created_at: profile.created_at,
+        updated_at: profile.updated_at,
+        roles: Array.isArray(profile.user_roles) ? profile.user_roles : []
+      })) || [];
+      
+      setUsers(transformedUsers);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar usuarios');
     } finally {
@@ -61,6 +79,21 @@ export function useUserRoles() {
 
   const assignRole = async (userId: string, role: AppRole) => {
     try {
+      // First check if the role already exists
+      const { data: existingRole } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('role', role)
+        .single();
+
+      if (existingRole) {
+        return { 
+          success: false, 
+          error: 'El usuario ya tiene este rol asignado' 
+        };
+      }
+
       const { error } = await supabase
         .from('user_roles')
         .insert([
@@ -84,6 +117,19 @@ export function useUserRoles() {
 
   const removeRole = async (userId: string, role: AppRole) => {
     try {
+      // Don't allow removing the last role
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', userId);
+
+      if (userRoles && userRoles.length <= 1) {
+        return { 
+          success: false, 
+          error: 'No se puede remover el último rol del usuario' 
+        };
+      }
+
       const { error } = await supabase
         .from('user_roles')
         .delete()

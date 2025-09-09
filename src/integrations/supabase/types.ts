@@ -1188,6 +1188,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      invite_user: {
+        Args: {
+          user_email: string
+          user_full_name?: string
+          user_role?: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "manager" | "cashier" | "viewer"

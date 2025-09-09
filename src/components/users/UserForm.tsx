@@ -6,8 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useUserRoles, type AppRole, type UserProfile } from '@/hooks/useUserRoles';
+import { useUserInvite } from '@/hooks/useUserInvite';
 import { useToast } from '@/hooks/use-toast';
-import { X } from 'lucide-react';
 
 interface UserFormProps {
   user?: UserProfile;
@@ -31,6 +31,7 @@ const roleDescriptions: Record<AppRole, string> = {
 
 export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
   const { updateProfile, assignRole, removeRole } = useUserRoles();
+  const { inviteUser } = useUserInvite();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   
@@ -40,48 +41,72 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
   });
 
   const [selectedRoles, setSelectedRoles] = useState<Set<AppRole>>(
-    new Set(user?.roles?.map(r => r.role) || [])
+    new Set(user?.roles?.map(r => r.role) || ['viewer'])
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    
+    if (!formData.email) {
+      toast({
+        title: "Error",
+        description: "El email es requerido",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(true);
     try {
-      // Update profile
-      const profileResult = await updateProfile(user.id, formData);
-      if (!profileResult.success) {
-        throw new Error(profileResult.error);
-      }
-
-      // Handle role changes
-      const currentRoles = new Set(user.roles?.map(r => r.role) || []);
-      
-      // Remove roles that are no longer selected
-      for (const role of currentRoles) {
-        if (!selectedRoles.has(role)) {
-          await removeRole(user.id, role);
+      if (user) {
+        // Update existing user
+        const profileResult = await updateProfile(user.id, formData);
+        if (!profileResult.success) {
+          throw new Error(profileResult.error);
         }
-      }
 
-      // Add new roles
-      for (const role of selectedRoles) {
-        if (!currentRoles.has(role)) {
-          await assignRole(user.id, role);
+        // Handle role changes
+        const currentRoles = new Set(user.roles?.map(r => r.role) || []);
+        
+        // Remove roles that are no longer selected
+        for (const role of currentRoles) {
+          if (!selectedRoles.has(role)) {
+            await removeRole(user.id, role);
+          }
         }
-      }
 
-      toast({
-        title: "Usuario actualizado",
-        description: "Los cambios se han guardado correctamente",
-      });
+        // Add new roles
+        for (const role of selectedRoles) {
+          if (!currentRoles.has(role)) {
+            await assignRole(user.id, role);
+          }
+        }
+
+        toast({
+          title: "Usuario actualizado",
+          description: "Los cambios se han guardado correctamente",
+        });
+      } else {
+        // Create new user (invite)
+        const primaryRole = Array.from(selectedRoles)[0] || 'viewer';
+        
+        const inviteResult = await inviteUser(formData.email, formData.full_name, primaryRole);
+        if (!inviteResult.success) {
+          throw new Error(inviteResult.error);
+        }
+
+        toast({
+          title: "Usuario invitado",
+          description: "El usuario ha sido invitado al sistema correctamente",
+        });
+      }
 
       onSuccess();
+      onClose();
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Error al actualizar usuario",
+        description: error instanceof Error ? error.message : "Error al procesar la solicitud",
         variant: "destructive",
       });
     } finally {
@@ -123,13 +148,15 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 placeholder="email@ejemplo.com"
+                disabled={!!user}
+                required
               />
             </div>
           </div>
