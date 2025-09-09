@@ -5,7 +5,6 @@ import { DeviceSettings } from "@/components/settings/DeviceSettings";
 import { PrintSettings } from "@/components/settings/PrintSettings";
 import { UserManagement } from "@/components/users/UserManagement";
 import { WebhookSettings } from "@/components/webhooks/WebhookSettings";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings, Building2, Receipt, Printer, Cpu, Users, Webhook } from "lucide-react";
 
 export default function Configuracion() {
@@ -50,20 +49,7 @@ export default function Configuracion() {
         </TabsList>
 
         <TabsContent value="company">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                Información de la Empresa
-              </CardTitle>
-              <CardDescription>
-                Configura los datos básicos de tu empresa
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CompanyForm />
-            </CardContent>
-          </Card>
+          <CompanyForm />
         </TabsContent>
 
         <TabsContent value="users">
@@ -75,54 +61,15 @@ export default function Configuracion() {
         </TabsContent>
 
         <TabsContent value="taxes">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Receipt className="h-5 w-5" />
-                Configuración de Impuestos
-              </CardTitle>
-              <CardDescription>
-                Gestiona los impuestos aplicables a tus productos
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <TaxSettings />
-            </CardContent>
-          </Card>
+          <TaxSettings />
         </TabsContent>
 
         <TabsContent value="devices">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Cpu className="h-5 w-5" />
-                Dispositivos Conectados
-              </CardTitle>
-              <CardDescription>
-                Configura lectores de código de barras, báscula y otros dispositivos
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <DeviceSettings />
-            </CardContent>
-          </Card>
+          <DeviceSettings />
         </TabsContent>
 
         <TabsContent value="printing">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Printer className="h-5 w-5" />
-                Configuración de Impresión
-              </CardTitle>
-              <CardDescription>
-                Personaliza el formato de recibos y facturas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <PrintSettings />
-            </CardContent>
-          </Card>
+          <PrintSettings />
         </TabsContent>
       </Tabs>
     </div>
