@@ -3,10 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AuthenticatedLayout } from "@/components/AuthenticatedLayout";
 import Index from "./pages/Index";
 import Productos from "./pages/Productos";
 import Categorias from "./pages/Categorias";
@@ -26,21 +24,35 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <SidebarProvider>
-                  <DashboardLayout>
-                    <Routes>
-                      <Route path="/" element={<Index />} />
-                      <Route path="/productos" element={<Productos />} />
-                      <Route path="/categorias" element={<Categorias />} />
-                      <Route path="/ubicaciones" element={<Ubicaciones />} />
-                      <Route path="/inventario" element={<Inventario />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </DashboardLayout>
-                </SidebarProvider>
-              </ProtectedRoute>
+            <Route path="/" element={
+              <AuthenticatedLayout>
+                <Index />
+              </AuthenticatedLayout>
+            } />
+            <Route path="/productos" element={
+              <AuthenticatedLayout>
+                <Productos />
+              </AuthenticatedLayout>
+            } />
+            <Route path="/categorias" element={
+              <AuthenticatedLayout>
+                <Categorias />
+              </AuthenticatedLayout>
+            } />
+            <Route path="/ubicaciones" element={
+              <AuthenticatedLayout>
+                <Ubicaciones />
+              </AuthenticatedLayout>
+            } />
+            <Route path="/inventario" element={
+              <AuthenticatedLayout>
+                <Inventario />
+              </AuthenticatedLayout>
+            } />
+            <Route path="*" element={
+              <AuthenticatedLayout>
+                <NotFound />
+              </AuthenticatedLayout>
             } />
           </Routes>
         </AuthProvider>
