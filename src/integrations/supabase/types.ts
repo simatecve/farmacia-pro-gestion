@@ -296,6 +296,96 @@ export type Database = {
         }
         Relationships: []
       }
+      company_settings: {
+        Row: {
+          address: string | null
+          created_at: string
+          currency: string
+          currency_symbol: string
+          email: string | null
+          id: string
+          legal_name: string | null
+          logo_url: string | null
+          name: string
+          phone: string | null
+          tax_id: string | null
+          timezone: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          currency?: string
+          currency_symbol?: string
+          email?: string | null
+          id?: string
+          legal_name?: string | null
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          tax_id?: string | null
+          timezone?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          currency?: string
+          currency_symbol?: string
+          email?: string | null
+          id?: string
+          legal_name?: string | null
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          tax_id?: string | null
+          timezone?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      device_settings: {
+        Row: {
+          active: boolean
+          connection_config: Json | null
+          connection_type: string
+          created_at: string
+          device_name: string
+          device_type: string
+          id: string
+          is_default: boolean
+          settings: Json | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          connection_config?: Json | null
+          connection_type: string
+          created_at?: string
+          device_name: string
+          device_type: string
+          id?: string
+          is_default?: boolean
+          settings?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          connection_config?: Json | null
+          connection_type?: string
+          created_at?: string
+          device_name?: string
+          device_type?: string
+          id?: string
+          is_default?: boolean
+          settings?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           available_stock: number | null
@@ -554,6 +644,45 @@ export type Database = {
           payment_method?: string
           reference_number?: string | null
           sale_id?: string
+        }
+        Relationships: []
+      }
+      print_settings: {
+        Row: {
+          auto_print: boolean
+          copies: number
+          created_at: string
+          footer_text: string | null
+          id: string
+          paper_type: string
+          paper_width: number
+          print_barcode: boolean
+          print_logo: boolean
+          updated_at: string
+        }
+        Insert: {
+          auto_print?: boolean
+          copies?: number
+          created_at?: string
+          footer_text?: string | null
+          id?: string
+          paper_type?: string
+          paper_width?: number
+          print_barcode?: boolean
+          print_logo?: boolean
+          updated_at?: string
+        }
+        Update: {
+          auto_print?: boolean
+          copies?: number
+          created_at?: string
+          footer_text?: string | null
+          id?: string
+          paper_type?: string
+          paper_width?: number
+          print_barcode?: boolean
+          print_logo?: boolean
+          updated_at?: string
         }
         Relationships: []
       }
@@ -878,6 +1007,39 @@ export type Database = {
           payment_terms?: string | null
           phone?: string | null
           tax_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tax_settings: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          rate: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          rate: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          rate?: number
           updated_at?: string
         }
         Relationships: []

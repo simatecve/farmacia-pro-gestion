@@ -2,10 +2,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Printer, Download, X } from "lucide-react";
 import { Sale, SaleItem } from "@/hooks/useSales";
+import { useSettings } from "@/hooks/useSettings";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useEffect } from "react";
 
 interface ReceiptModalProps {
   isOpen: boolean;
@@ -15,20 +18,36 @@ interface ReceiptModalProps {
 }
 
 export function ReceiptModal({ isOpen, onClose, sale, client }: ReceiptModalProps) {
+  const { companySettings, taxSettings, printSettings } = useSettings();
+  
   if (!sale) return null;
 
+  // Get default tax or first available tax setting
+  const defaultTax = taxSettings.find(tax => tax.is_default) || taxSettings[0];
+  const taxRate = defaultTax ? defaultTax.rate : 0.16;
+  const taxName = defaultTax ? defaultTax.name : 'IVA';
+
   const handlePrint = () => {
+    if (printSettings?.auto_print) {
+      // Auto print logic would go here
+      console.log('Auto printing...');
+    }
     window.print();
   };
 
   const handleDownload = () => {
+    const companyName = companySettings?.name || 'DAALEF FARMACIA';
+    const companyAddress = companySettings?.address || 'Av. Principal 123, Centro Comercial Plaza, Local 45';
+    const companyPhone = companySettings?.phone || '+593 2 123-4567';
+    const companyTaxId = companySettings?.tax_id || '1234567890001';
+    const footerText = printSettings?.footer_text || 'Gracias por confiar en nosotros para su salud y bienestar';
+    
     // Create a simple text receipt
     const receiptText = `
-DAALEF FARMACIA
-Av. Principal 123, Centro Comercial Plaza, Local 45
-Tel: +593 2 123-4567
-RUC: 1234567890001
-Lic. Sanitaria: MSP-2024-001234
+${companyName.toUpperCase()}
+${companyAddress}
+Tel: ${companyPhone}
+${companySettings?.tax_id ? `RFC: ${companyTaxId}` : ''}
 
 FACTURA: ${sale.sale_number}
 FECHA: ${format(new Date(sale.created_at), "dd/MM/yyyy HH:mm")}
@@ -37,23 +56,22 @@ CLIENTE: ${client?.name || 'CONSUMIDOR FINAL'}
 
 PRODUCTO                 CANT    PRECIO    TOTAL
 ${sale.items?.map(item => 
-  `${item.product_name?.padEnd(20)}  ${item.quantity.toString().padStart(4)}  $${item.unit_price.toFixed(2).padStart(8)}  $${item.total_price.toFixed(2).padStart(8)}`
+  `${item.product_name?.padEnd(20)}  ${item.quantity.toString().padStart(4)}  ${companySettings?.currency_symbol || '$'}${item.unit_price.toFixed(2).padStart(8)}  ${companySettings?.currency_symbol || '$'}${item.total_price.toFixed(2).padStart(8)}`
 ).join('\n') || ''}
 
-SUBTOTAL:                           $${(sale.total_amount - sale.tax_amount).toFixed(2)}
-IVA (16%):                          $${sale.tax_amount.toFixed(2)}
-TOTAL:                              $${sale.total_amount.toFixed(2)}
+SUBTOTAL:                           ${companySettings?.currency_symbol || '$'}${(sale.total_amount - sale.tax_amount).toFixed(2)}
+${taxName} (${(taxRate * 100).toFixed(0)}%):                          ${companySettings?.currency_symbol || '$'}${sale.tax_amount.toFixed(2)}
+TOTAL:                              ${companySettings?.currency_symbol || '$'}${sale.total_amount.toFixed(2)}
 
 MÉTODO DE PAGO: ${sale.payment_method === 'cash' ? 'EFECTIVO' : 
                   sale.payment_method === 'card' ? 'TARJETA' : 'TRANSFERENCIA'}
 
-Gracias por confiar en nosotros para su salud y bienestar
+${footerText}
 
 ¡Gracias por su compra!
 Conserve este recibo
 
-Sistema: Daalef Farmacia
-Inteligencia de Negocio
+Sistema: ${companyName}
     `;
 
     const blob = new Blob([receiptText], { type: 'text/plain' });
@@ -76,7 +94,7 @@ Inteligencia de Negocio
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh]">
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Ticket de Venta</DialogTitle>
@@ -86,16 +104,22 @@ Inteligencia de Negocio
           </div>
         </DialogHeader>
         
-        <Card className="receipt-print">
-          <CardContent className="p-6">
-            {/* Header */}
-            <div className="text-center mb-6">
-              <h2 className="text-xl font-bold">Daalef Farmacia</h2>
-              <p className="text-sm text-muted-foreground">Av. Principal 123, Centro Comercial Plaza, Local 45</p>
-              <p className="text-sm text-muted-foreground">Tel: +593 2 123-4567</p>
-              <p className="text-sm text-muted-foreground">RUC: 1234567890001</p>
-              <p className="text-sm text-muted-foreground">Lic. Sanitaria: MSP-2024-001234</p>
-            </div>
+        <ScrollArea className="max-h-[70vh]">
+          <Card className="receipt-print">
+            <CardContent className="p-6">
+              {/* Header */}
+              <div className="text-center mb-6">
+                <h2 className="text-xl font-bold">{companySettings?.name || 'Daalef Farmacia'}</h2>
+                {companySettings?.address && (
+                  <p className="text-sm text-muted-foreground">{companySettings.address}</p>
+                )}
+                {companySettings?.phone && (
+                  <p className="text-sm text-muted-foreground">Tel: {companySettings.phone}</p>
+                )}
+                {companySettings?.tax_id && (
+                  <p className="text-sm text-muted-foreground">RFC: {companySettings.tax_id}</p>
+                )}
+              </div>
 
             <Separator className="mb-4" />
 
@@ -155,13 +179,13 @@ Inteligencia de Negocio
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span>IVA (16%):</span>
-                <span>${sale.tax_amount.toFixed(2)}</span>
+                <span>{taxName} ({(taxRate * 100).toFixed(0)}%):</span>
+                <span>{companySettings?.currency_symbol || '$'}{sale.tax_amount.toFixed(2)}</span>
               </div>
               <Separator />
               <div className="flex justify-between text-lg font-bold">
                 <span>TOTAL:</span>
-                <span>${sale.total_amount.toFixed(2)}</span>
+                <span>{companySettings?.currency_symbol || '$'}{sale.total_amount.toFixed(2)}</span>
               </div>
             </div>
 
@@ -179,16 +203,16 @@ Inteligencia de Negocio
 
             {/* Footer */}
             <div className="text-center text-xs text-muted-foreground space-y-1">
-              <p>Gracias por confiar en nosotros para su salud y bienestar</p>
+              <p>{printSettings?.footer_text || 'Gracias por confiar en nosotros para su salud y bienestar'}</p>
               <p className="font-medium">¡Gracias por su compra!</p>
               <p>Conserve este recibo</p>
               <div className="mt-4 pt-2 border-t">
-                <p>Sistema: Daalef Farmacia</p>
-                <p>Inteligencia de Negocio</p>
+                <p>Sistema: {companySettings?.name || 'Daalef Farmacia'}</p>
               </div>
             </div>
           </CardContent>
         </Card>
+        </ScrollArea>
 
         {/* Action Buttons */}
         <div className="flex gap-3 mt-4">
