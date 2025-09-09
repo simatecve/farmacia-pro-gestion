@@ -8,9 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Plus, Edit, Trash2, Printer, CreditCard, Scan, Scale } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Plus, Edit, Trash2, Printer, CreditCard, Scan, Scale, Usb, Wifi, Search, CheckCircle, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DeviceSettings as DeviceSettingsType, useSettings } from "@/hooks/useSettings";
+import { useDeviceDetection } from "@/hooks/useDeviceDetection";
 
 const deviceTypes = [
   { value: 'printer', label: 'Impresora', icon: Printer },
@@ -28,10 +30,19 @@ const connectionTypes = [
 
 export function DeviceSettings() {
   const { deviceSettings, createDeviceSetting, updateDeviceSetting, deleteDeviceSetting, loading } = useSettings();
+  const { 
+    detectedDevices, 
+    isScanning, 
+    isUSBSupported, 
+    scanDevices, 
+    requestUSBAccess,
+    getDevicesByType 
+  } = useDeviceDetection();
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<DeviceSettingsType | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showDetectedDevices, setShowDetectedDevices] = useState(false);
   
   const [formData, setFormData] = useState({
     device_type: '',
@@ -122,6 +133,64 @@ export function DeviceSettings() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleScanDevices = async () => {
+    try {
+      await scanDevices();
+      setShowDetectedDevices(true);
+      toast({
+        title: "Escaneo completado",
+        description: `Se encontraron ${detectedDevices.length} dispositivos conectados`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudo escanear dispositivos",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRequestUSBAccess = async () => {
+    try {
+      await requestUSBAccess();
+      toast({
+        title: "Acceso USB concedido",
+        description: "Ahora puedes configurar dispositivos USB",
+      });
+    } catch (error) {
+      toast({
+        title: "Acceso denegado",
+        description: "El usuario canceló el acceso a dispositivos USB",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleConfigureDetectedDevice = (detectedDevice: any) => {
+    const deviceTypeMap: Record<string, string> = {
+      'printer': 'printer',
+      'barcode_reader': 'barcode_reader',
+      'cash_drawer': 'cash_drawer',
+      'scale': 'scale'
+    };
+
+    setFormData({
+      device_type: deviceTypeMap[detectedDevice.deviceType] || 'printer',
+      device_name: detectedDevice.productName || `${detectedDevice.manufacturerName} Device`,
+      connection_type: detectedDevice.connectionType,
+      connection_config: {
+        vendorId: detectedDevice.vendorId,
+        productId: detectedDevice.productId,
+        manufacturerName: detectedDevice.manufacturerName
+      },
+      is_default: false,
+      active: true,
+      settings: {}
+    });
+    setEditingDevice(null);
+    setIsDialogOpen(true);
+  };
+
   const getDeviceIcon = (type: string) => {
     const deviceType = deviceTypes.find(d => d.value === type);
     return deviceType ? deviceType.icon : Printer;
@@ -140,13 +209,33 @@ export function DeviceSettings() {
             <Printer className="h-5 w-5" />
             Dispositivos y Periféricos
           </CardTitle>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={resetForm}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nuevo Dispositivo
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            {isUSBSupported && (
+              <>
+                <Button 
+                  variant="outline" 
+                  onClick={handleScanDevices}
+                  disabled={isScanning}
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  {isScanning ? 'Escaneando...' : 'Detectar Dispositivos'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={handleRequestUSBAccess}
+                >
+                  <Usb className="h-4 w-4 mr-2" />
+                  Solicitar Acceso USB
+                </Button>
+              </>
+            )}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={resetForm}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nuevo Dispositivo
+                </Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>
@@ -229,9 +318,57 @@ export function DeviceSettings() {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
+        {!isUSBSupported && (
+          <Alert className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Tu navegador no soporta Web USB API. La detección automática de dispositivos no estará disponible.
+              Para mejor compatibilidad, usa Chrome, Edge o Opera.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {showDetectedDevices && detectedDevices.length > 0 && (
+          <Card className="mb-4 border-green-200 bg-green-50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                Dispositivos Detectados ({detectedDevices.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {detectedDevices.map((device, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 border rounded bg-white">
+                    <div className="flex items-center gap-2">
+                      {device.deviceType === 'printer' && <Printer className="h-4 w-4" />}
+                      {device.deviceType === 'barcode_reader' && <Scan className="h-4 w-4" />}
+                      {device.deviceType === 'cash_drawer' && <CreditCard className="h-4 w-4" />}
+                      {device.deviceType === 'scale' && <Scale className="h-4 w-4" />}
+                      <div>
+                        <p className="font-medium text-sm">{device.productName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {device.manufacturerName} - {device.connectionType.toUpperCase()}
+                        </p>
+                      </div>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      onClick={() => handleConfigureDetectedDevice(device)}
+                    >
+                      Configurar
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {loading ? (
           <div className="animate-pulse space-y-4">
             <div className="h-10 bg-muted rounded"></div>

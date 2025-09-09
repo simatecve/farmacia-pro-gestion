@@ -4,9 +4,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Search, Package, Plus, AlertTriangle } from "lucide-react";
+import { Search, Package, Plus, AlertTriangle, Scan, ScanLine } from "lucide-react";
 import { useProductsWithStock, ProductWithStock } from "@/hooks/useProductsWithStock";
 import { useToast } from "@/hooks/use-toast";
+import { useDeviceDetection } from "@/hooks/useDeviceDetection";
 
 interface ProductSearchProps {
   onAddProduct: (product: ProductWithStock) => void;
@@ -17,6 +18,15 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
   const [filteredProducts, setFilteredProducts] = useState<ProductWithStock[]>([]);
   const { products, loading } = useProductsWithStock();
   const { toast } = useToast();
+  const { 
+    lastBarcodeEvent, 
+    startBarcodeListening, 
+    stopBarcodeListening, 
+    isBarcodeListening,
+    getDevicesByType 
+  } = useDeviceDetection();
+
+  const barcodeReaders = getDevicesByType('barcode_reader');
 
   useEffect(() => {
     if (searchTerm.trim() === "") {
@@ -30,6 +40,19 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
       setFilteredProducts(filtered.slice(0, 20));
     }
   }, [searchTerm, products]);
+
+  // Manejar eventos de código de barras automático
+  useEffect(() => {
+    if (lastBarcodeEvent && lastBarcodeEvent.code) {
+      handleBarcodeSearch(lastBarcodeEvent.code);
+    }
+  }, [lastBarcodeEvent]);
+
+  // Iniciar escucha de códigos de barras al montar
+  useEffect(() => {
+    startBarcodeListening();
+    return () => stopBarcodeListening();
+  }, []);
 
   const handleBarcodeSearch = (barcode: string) => {
     const product = products.find(p => p.barcode === barcode);
@@ -53,7 +76,25 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
   return (
     <Card className="h-full">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Buscar Productos</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg">Buscar Productos</CardTitle>
+          <div className="flex items-center gap-2">
+            {barcodeReaders.length > 0 && (
+              <Badge variant="outline" className="text-xs">
+                <Scan className="h-3 w-3 mr-1" />
+                {barcodeReaders.length} lector{barcodeReaders.length > 1 ? 'es' : ''}
+              </Badge>
+            )}
+            <Badge 
+              variant={isBarcodeListening ? "default" : "secondary"} 
+              className="text-xs"
+            >
+              <ScanLine className="h-3 w-3 mr-1" />
+              {isBarcodeListening ? 'Escuchando' : 'Desactivado'}
+            </Badge>
+          </div>
+        </div>
+        
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -68,6 +109,15 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
             className="pl-10"
           />
         </div>
+        
+        {isBarcodeListening && (
+          <Alert className="mt-2">
+            <ScanLine className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              Sistema listo para recibir códigos de barras automáticamente
+            </AlertDescription>
+          </Alert>
+        )}
       </CardHeader>
       <CardContent>
         {loading ? (

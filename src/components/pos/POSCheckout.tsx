@@ -6,10 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { CreditCard, DollarSign, Smartphone, User, UserPlus, Percent } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { CreditCard, DollarSign, Smartphone, User, UserPlus, Percent, Printer, DollarSign as CashDrawer } from "lucide-react";
 import { SaleItem } from "@/hooks/useSales";
 import { useClients } from "@/hooks/useClients";
 import { CashCalculator } from "./CashCalculator";
+import { useDeviceDetection } from "@/hooks/useDeviceDetection";
+import { useToast } from "@/hooks/use-toast";
 
 interface POSCheckoutProps {
   items: SaleItem[];
@@ -38,6 +41,15 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
   const [cashReceived, setCashReceived] = useState(0);
   const [changeAmount, setChangeAmount] = useState(0);
   const { clients } = useClients();
+  const { toast } = useToast();
+  const { 
+    printReceipt, 
+    openCashDrawer, 
+    getDevicesByType 
+  } = useDeviceDetection();
+
+  const printers = getDevicesByType('printer');
+  const cashDrawers = getDevicesByType('cash_drawer');
 
   // Set default client to CONSUMIDOR FINAL
   useEffect(() => {
@@ -79,6 +91,9 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
         cash_received: paymentMethod === 'cash' ? cashReceived : undefined,
         change_amount: paymentMethod === 'cash' ? changeAmount : undefined
       });
+
+      // Procesos automáticos post-venta
+      await handlePostSaleActions();
       
       // Reset form
       setPaymentMethod("");
@@ -98,6 +113,54 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
     }
   };
 
+  const handlePostSaleActions = async () => {
+    try {
+      // 1. Imprimir ticket automáticamente
+      if (printers.length > 0) {
+        const receiptData = {
+          companyName: 'FARMACIA PRO',
+          address: 'Dirección de la farmacia',
+          phone: 'Teléfono de contacto',
+          ticketNumber: `TKT-${Date.now()}`,
+          items: items.map(item => ({
+            name: item.product_name,
+            quantity: item.quantity,
+            price: item.unit_price,
+            total: item.total_price
+          })),
+          subtotal,
+          discount,
+          total,
+          paymentMethod,
+          cashReceived: paymentMethod === 'cash' ? cashReceived : undefined,
+          changeAmount: paymentMethod === 'cash' ? changeAmount : undefined,
+          clientName: selectedClient?.name
+        };
+
+        const success = await printReceipt(JSON.stringify(receiptData), printers[0].vendorId.toString());
+        if (success) {
+          toast({
+            title: "Ticket impreso",
+            description: "El ticket se ha impreso correctamente",
+          });
+        }
+      }
+
+      // 2. Abrir gaveta de dinero para pagos en efectivo
+      if (paymentMethod === 'cash' && cashDrawers.length > 0) {
+        const success = await openCashDrawer(cashDrawers[0].vendorId.toString());
+        if (success) {
+          toast({
+            title: "Gaveta abierta",
+            description: "La gaveta de dinero se ha abierto automáticamente",
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error en acciones post-venta:', error);
+    }
+  };
+
   const paymentMethods = [
     { value: "cash", label: "Efectivo", icon: DollarSign, color: "text-green-600" },
     { value: "card", label: "Tarjeta", icon: CreditCard, color: "text-blue-600" },
@@ -109,10 +172,26 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
   return (
     <Card className="h-full">
       <CardHeader className="pb-3">
-        <CardTitle className="text-xl flex items-center gap-2">
-          <CreditCard className="h-5 w-5" />
-          Finalizar Venta
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-xl flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Finalizar Venta
+          </CardTitle>
+          <div className="flex gap-1">
+            {printers.length > 0 && (
+              <Badge variant="outline" className="text-xs">
+                <Printer className="h-3 w-3 mr-1" />
+                Impresora
+              </Badge>
+            )}
+            {cashDrawers.length > 0 && (
+              <Badge variant="outline" className="text-xs">
+                <CashDrawer className="h-3 w-3 mr-1" />
+                Gaveta
+              </Badge>
+            )}
+          </div>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Discount Section */}
