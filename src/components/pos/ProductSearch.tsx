@@ -101,7 +101,10 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
                   </div>
                   <Button
                     size="sm"
-                    onClick={() => onAddProduct(product)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAddProduct(product);
+                    }}
                     disabled={(product.current_stock || 0) <= 0}
                     className="ml-2"
                   >

@@ -35,7 +35,7 @@ export function POSCheckout({ items, total, onProcessSale, disabled }: POSChecko
     if (defaultClient && !clientId) {
       setClientId(defaultClient.id);
     }
-  }, [clients, clientId]);
+  }, [clients]);
 
   const handleProcessSale = async () => {
     if (!paymentMethod) return;
@@ -80,13 +80,14 @@ export function POSCheckout({ items, total, onProcessSale, disabled }: POSChecko
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Client Selection */}
-        <div className="space-y-3">
-          <Label className="text-base font-medium flex items-center gap-2">
-            <User className="h-4 w-4" />
+        {/* Client Selection */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium flex items-center gap-2">
+            <User className="h-3 w-3" />
             Cliente
           </Label>
           <Select value={clientId} onValueChange={setClientId}>
-            <SelectTrigger className="h-12">
+            <SelectTrigger className="h-10">
               <SelectValue placeholder="Seleccionar cliente" />
             </SelectTrigger>
             <SelectContent>
@@ -106,31 +107,31 @@ export function POSCheckout({ items, total, onProcessSale, disabled }: POSChecko
           </Select>
           
           {selectedClient && (
-            <div className="p-3 bg-accent/20 rounded-lg">
+            <div className="p-2 bg-accent/20 rounded text-sm">
               <p className="font-medium">{selectedClient.name}</p>
               {selectedClient.phone !== '0000000' && (
-                <p className="text-sm text-muted-foreground">{selectedClient.phone}</p>
+                <p className="text-xs text-muted-foreground">{selectedClient.phone}</p>
               )}
             </div>
           )}
         </div>
 
         {/* Total Display */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-6 text-center">
-          <p className="text-sm text-muted-foreground mb-1">Total a Pagar</p>
-          <p className="text-4xl font-bold text-primary">${total.toFixed(2)}</p>
-          <p className="text-sm text-muted-foreground mt-1">{items.length} productos</p>
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
+          <p className="text-xs text-muted-foreground mb-1">Total a Pagar</p>
+          <p className="text-2xl font-bold text-primary">${total.toFixed(2)}</p>
+          <p className="text-xs text-muted-foreground mt-1">{items.length} productos</p>
         </div>
 
         {/* Process Sale Button */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button 
-              className="w-full h-14 text-lg font-semibold" 
+              className="w-full h-12 text-base font-semibold" 
               size="lg"
               disabled={disabled || items.length === 0}
             >
-              <CreditCard className="h-5 w-5 mr-2" />
+              <CreditCard className="h-4 w-4 mr-2" />
               Procesar Venta
             </Button>
           </DialogTrigger>
