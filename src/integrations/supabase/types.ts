@@ -14,7 +14,242 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inventory: {
+        Row: {
+          available_stock: number | null
+          batch_number: string | null
+          created_at: string
+          current_stock: number
+          expiry_date: string | null
+          id: string
+          location_id: string
+          product_id: string
+          reserved_stock: number
+          updated_at: string
+        }
+        Insert: {
+          available_stock?: number | null
+          batch_number?: string | null
+          created_at?: string
+          current_stock?: number
+          expiry_date?: string | null
+          id?: string
+          location_id: string
+          product_id: string
+          reserved_stock?: number
+          updated_at?: string
+        }
+        Update: {
+          available_stock?: number | null
+          batch_number?: string | null
+          created_at?: string
+          current_stock?: number
+          expiry_date?: string | null
+          id?: string
+          location_id?: string
+          product_id?: string
+          reserved_stock?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_movements: {
+        Row: {
+          batch_number: string | null
+          created_at: string
+          expiry_date: string | null
+          id: string
+          location_id: string
+          movement_type: string
+          notes: string | null
+          product_id: string
+          quantity: number
+          reference_id: string | null
+          reference_type: string | null
+          stock_after: number
+          stock_before: number
+          total_cost: number | null
+          unit_cost: number | null
+          user_id: string | null
+        }
+        Insert: {
+          batch_number?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          location_id: string
+          movement_type: string
+          notes?: string | null
+          product_id: string
+          quantity: number
+          reference_id?: string | null
+          reference_type?: string | null
+          stock_after?: number
+          stock_before?: number
+          total_cost?: number | null
+          unit_cost?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          batch_number?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          location_id?: string
+          movement_type?: string
+          notes?: string | null
+          product_id?: string
+          quantity?: number
+          reference_id?: string | null
+          reference_type?: string | null
+          stock_after?: number
+          stock_before?: number
+          total_cost?: number | null
+          unit_cost?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_movements_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      locations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          active: boolean
+          barcode: string | null
+          category_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          max_stock: number
+          min_stock: number
+          name: string
+          purchase_price: number
+          requires_prescription: boolean
+          sale_price: number
+          sku: string | null
+          unit_type: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          barcode?: string | null
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          max_stock?: number
+          min_stock?: number
+          name: string
+          purchase_price?: number
+          requires_prescription?: boolean
+          sale_price?: number
+          sku?: string | null
+          unit_type?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          barcode?: string | null
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          max_stock?: number
+          min_stock?: number
+          name?: string
+          purchase_price?: number
+          requires_prescription?: boolean
+          sale_price?: number
+          sku?: string | null
+          unit_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

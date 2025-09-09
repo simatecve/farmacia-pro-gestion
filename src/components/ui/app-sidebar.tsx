@@ -33,11 +33,13 @@ import { Button } from "@/components/ui/button";
 const mainItems = [
   { title: "Dashboard", url: "/", icon: Home },
   { title: "Productos", url: "/productos", icon: Package },
+  { title: "Categorías", url: "/categorias", icon: Package },
+  { title: "Ubicaciones", url: "/ubicaciones", icon: Package },
+  { title: "Inventario", url: "/inventario", icon: Package },
   { title: "Clientes", url: "/clientes", icon: Users },
   { title: "Proveedores", url: "/proveedores", icon: Truck },
   { title: "Ventas", url: "/ventas", icon: ShoppingCart },
   { title: "Compras", url: "/compras", icon: Package2 },
-  { title: "Inventario", url: "/inventario", icon: Package },
   { title: "Reportes", url: "/reportes", icon: BarChart3 },
 ];
 
