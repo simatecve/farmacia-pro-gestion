@@ -62,6 +62,39 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
     }
   };
 
+  const handleManualSearch = (searchValue: string) => {
+    // First try exact barcode match
+    let product = products.find(p => p.barcode === searchValue);
+    
+    // If no barcode match, try SKU
+    if (!product) {
+      product = products.find(p => p.sku?.toLowerCase() === searchValue.toLowerCase());
+    }
+    
+    // If still no match, try name
+    if (!product) {
+      product = products.find(p => 
+        p.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    }
+    
+    // If still no match, try first from filtered results
+    if (!product && filteredProducts.length > 0) {
+      product = filteredProducts[0];
+    }
+    
+    if (product) {
+      handleAddProduct(product);
+      setSearchTerm("");
+    } else {
+      toast({
+        title: "Producto no encontrado",
+        description: `No se encontró ningún producto con: ${searchValue}`,
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleAddProduct = (product: ProductWithStock) => {
     if (product.requires_prescription) {
       toast({
@@ -103,7 +136,7 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && searchTerm.trim()) {
-                handleBarcodeSearch(searchTerm.trim());
+                handleManualSearch(searchTerm.trim());
               }
             }}
             className="pl-10"
