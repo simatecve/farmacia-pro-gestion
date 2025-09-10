@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,8 +17,14 @@ export function LocationForm({ location, onSave, onCancel }: LocationFormProps) 
   const [name, setName] = useState(location?.name || '');
   const [description, setDescription] = useState(location?.description || '');
   const [saving, setSaving] = useState(false);
-  const { createLocation, updateLocation } = useLocations();
+  const { createLocation, updateLocation, refreshLocations } = useLocations();
   const { toast } = useToast();
+
+  // Reset form when location prop changes
+  useEffect(() => {
+    setName(location?.name || '');
+    setDescription(location?.description || '');
+  }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +55,9 @@ export function LocationForm({ location, onSave, onCancel }: LocationFormProps) 
         setName('');
         setDescription('');
       }
+      
+      // Refresh the locations list in the parent component
+      refreshLocations();
       onSave?.();
     } catch (error) {
       toast({

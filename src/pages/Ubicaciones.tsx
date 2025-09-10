@@ -15,7 +15,7 @@ export default function Ubicaciones() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const { locations, loading, deleteLocation } = useLocations();
+  const { locations, loading, deleteLocation, refreshLocations } = useLocations();
   const { toast } = useToast();
 
   const filteredLocations = locations.filter(location =>
@@ -31,6 +31,7 @@ export default function Ubicaciones() {
   const handleDelete = async (location: Location) => {
     try {
       await deleteLocation(location.id);
+      refreshLocations();
       toast({
         title: "Éxito",
         description: "Ubicación eliminada correctamente"
