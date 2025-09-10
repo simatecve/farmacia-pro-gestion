@@ -27,6 +27,12 @@ class BarcodeService {
   private handleKeyDown(event: KeyboardEvent) {
     if (!this.isListening) return;
 
+    // No interceptar eventos si el usuario está escribiendo en un campo de entrada
+    const target = event.target as HTMLElement;
+    if (this.isInputElement(target)) {
+      return;
+    }
+
     const currentTime = Date.now();
     
     // Si ha pasado mucho tiempo desde la última tecla, reiniciar buffer
@@ -54,11 +60,25 @@ class BarcodeService {
       this.buffer += event.key;
       this.lastKeyTime = currentTime;
       
-      // Prevenir comportamiento por defecto para lectores rápidos
-      if (this.buffer.length === 1) {
+      // Solo prevenir comportamiento por defecto si no es un elemento de entrada
+      if (this.buffer.length === 1 && !this.isInputElement(target)) {
         event.preventDefault();
       }
     }
+  }
+
+  // Verificar si el elemento es un campo de entrada
+  private isInputElement(element: HTMLElement): boolean {
+    if (!element) return false;
+    
+    const tagName = element.tagName.toLowerCase();
+    return (
+      tagName === 'input' ||
+      tagName === 'textarea' ||
+      tagName === 'select' ||
+      element.hasAttribute('contenteditable') ||
+      element.isContentEditable
+    );
   }
 
   // Manejar liberación de tecla

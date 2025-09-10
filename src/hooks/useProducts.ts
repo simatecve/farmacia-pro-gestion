@@ -21,9 +21,14 @@ export interface Product {
   max_stock: number;
   requires_prescription: boolean;
   active: boolean;
+  location_id: string | null;
   created_at: string;
   updated_at: string;
   category?: {
+    id: string;
+    name: string;
+  };
+  location?: {
     id: string;
     name: string;
   };
@@ -41,7 +46,8 @@ export function useProducts() {
         .from('products')
         .select(`
           *,
-          category:categories(id, name)
+          category:categories(id, name),
+          location:locations(id, name)
         `)
         .order('name');
       
@@ -61,7 +67,8 @@ export function useProducts() {
         .insert([productData])
         .select(`
           *,
-          category:categories(id, name)
+          category:categories(id, name),
+          location:locations(id, name)
         `)
         .single();
       
@@ -81,7 +88,8 @@ export function useProducts() {
         .eq('id', id)
         .select(`
           *,
-          category:categories(id, name)
+          category:categories(id, name),
+          location:locations(id, name)
         `)
         .single();
       

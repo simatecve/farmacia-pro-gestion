@@ -32,11 +32,16 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
     if (searchTerm.trim() === "") {
       setFilteredProducts(products.slice(0, 20)); // Show first 20 products
     } else {
-      const filtered = products.filter((product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.barcode?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      const searchLower = searchTerm.toLowerCase().trim();
+      const filtered = products.filter((product) => {
+        // Search in name, SKU, and barcode with better matching
+        const nameMatch = product.name.toLowerCase().includes(searchLower);
+        const skuMatch = product.sku?.toLowerCase().includes(searchLower);
+        const barcodeMatch = product.barcode?.toLowerCase().includes(searchLower);
+        const descriptionMatch = product.description?.toLowerCase().includes(searchLower);
+        
+        return nameMatch || skuMatch || barcodeMatch || descriptionMatch;
+      });
       setFilteredProducts(filtered.slice(0, 20));
     }
   }, [searchTerm, products]);
@@ -164,6 +169,13 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
               <div className="text-center text-muted-foreground py-8">
                 <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p>No se encontraron productos</p>
+                <div className="text-xs mt-2 space-y-1">
+                  <p>Total productos disponibles: {products.length}</p>
+                  <p>Término de búsqueda: "{searchTerm}"</p>
+                  {products.length === 0 && (
+                    <p className="text-orange-600">⚠️ No hay productos en la base de datos</p>
+                  )}
+                </div>
               </div>
             ) : (
               filteredProducts.map((product) => (

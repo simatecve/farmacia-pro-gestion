@@ -28,6 +28,7 @@ import Auditoria from "./pages/Auditoria";
 import Devoluciones from "./pages/Devoluciones";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import { DatabaseTest } from "./components/debug/DatabaseTest";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/configuracion" element={<MainLayout><Configuracion /></MainLayout>} />
             <Route path="/auditoria" element={<MainLayout><Auditoria /></MainLayout>} />
             <Route path="/devoluciones" element={<MainLayout><Devoluciones /></MainLayout>} />
+            <Route path="/debug-db" element={<MainLayout><DatabaseTest /></MainLayout>} />
             <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
           </Routes>
         </AuthProvider>

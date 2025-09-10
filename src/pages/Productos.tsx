@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from '@/components/ui/badge';
 import { Plus, Search, Package, AlertTriangle, DollarSign, TrendingUp, Edit, Trash2, Eye } from 'lucide-react';
 import { ProductForm } from '@/components/inventory/ProductForm';
+
 import { useProducts, type Product } from '@/hooks/useProducts';
 import { useToast } from '@/hooks/use-toast';
 
@@ -191,6 +192,7 @@ export default function Productos() {
                     <TableHead>Producto</TableHead>
                     <TableHead>SKU/Código</TableHead>
                     <TableHead>Categoría</TableHead>
+                    <TableHead>Ubicación</TableHead>
                     <TableHead>Precio Venta</TableHead>
                     <TableHead>Precio Compra</TableHead>
                     <TableHead>Stock Min/Max</TableHead>
@@ -249,6 +251,11 @@ export default function Productos() {
                               <span className="text-xs text-muted-foreground">{product.laboratory}</span>
                             )}
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          {product.location?.name || (
+                            <span className="text-muted-foreground italic">Sin ubicación</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-right font-medium">
                           {getPriceDisplay(product.sale_price)}

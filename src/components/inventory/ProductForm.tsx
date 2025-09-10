@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProducts, type Product } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
+import { useLocations } from '@/hooks/useLocations';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
@@ -19,39 +20,79 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
+  // Estados del formulario
   const [formData, setFormData] = useState({
-    name: product?.name || '',
-    description: product?.description || '',
-    sku: product?.sku || '',
-    barcode: product?.barcode || '',
-    code: product?.code || '',
-    category_id: product?.category_id || '',
-    unit_type: product?.unit_type || 'unidad',
-    presentation: product?.presentation || '',
-    concentration: product?.concentration || '',
-    laboratory: product?.laboratory || '',
-    expiry_date: product?.expiry_date || '',
-    sale_price: product?.sale_price || 0,
-    purchase_price: product?.purchase_price || 0,
-    min_stock: product?.min_stock || 0,
-    max_stock: product?.max_stock || 0,
-    requires_prescription: product?.requires_prescription || false,
-    active: product?.active ?? true
-  });
+     name: '',
+     description: '',
+     sku: '',
+     barcode: '',
+     code: '',
+     category_id: 'none',
+     unit_type: 'unidad',
+     presentation: '',
+     concentration: '',
+     laboratory: '',
+     location_id: 'none',
+     expiry_date: '',
+     sale_price: 0,
+     purchase_price: 0,
+     min_stock: 0,
+     max_stock: 0,
+     requires_prescription: false,
+     active: true
+   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(product?.image_url || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Hooks
   const { createProduct, updateProduct } = useProducts();
   const { categories } = useCategories();
+  const { locations, loading: locationsLoading, error: locationsError } = useLocations();
   const { toast } = useToast();
+
+  // Inicializar datos del producto si existe
+  useEffect(() => {
+    if (product) {
+      setFormData({
+         name: product.name || '',
+         description: product.description || '',
+         sku: product.sku || '',
+         barcode: product.barcode || '',
+         code: product.code || '',
+         category_id: product.category_id || 'none',
+         unit_type: product.unit_type || 'unidad',
+         presentation: product.presentation || '',
+         concentration: product.concentration || '',
+         laboratory: product.laboratory || '',
+         location_id: product.location_id || 'none',
+         expiry_date: product.expiry_date || '',
+         sale_price: product.sale_price || 0,
+         purchase_price: product.purchase_price || 0,
+         min_stock: product.min_stock || 0,
+         max_stock: product.max_stock || 0,
+         requires_prescription: product.requires_prescription || false,
+         active: product.active ?? true
+       });
+      setImagePreview(product.image_url || null);
+    }
+  }, [product]);
+
+  // Manejo de errores de ubicaciones
+  useEffect(() => {
+    if (locationsError) {
+      console.error('Error loading locations:', locationsError);
+      setError('Error al cargar las ubicaciones');
+    }
+  }, [locationsError]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type
+      // Validar tipo de archivo
       if (!file.type.startsWith('image/')) {
         toast({
           title: "Error",
@@ -61,7 +102,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
         return;
       }
 
-      // Validate file size (5MB)
+      // Validar tamaño (5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: "Error",
@@ -73,7 +114,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
 
       setImageFile(file);
       
-      // Create preview
+      // Crear preview
       const reader = new FileReader();
       reader.onload = (e) => {
         setImagePreview(e.target?.result as string);
@@ -82,14 +123,19 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     }
   };
 
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+  };
+
   const uploadImage = async (): Promise<string | null> => {
     if (!imageFile) return null;
 
     setUploading(true);
     try {
       const fileExt = imageFile.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = fileName;
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `products/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('product-images')
@@ -97,16 +143,16 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data } = supabase.storage
         .from('product-images')
         .getPublicUrl(filePath);
 
-      return publicUrl;
+      return data.publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({
         title: "Error",
-        description: "Error subiendo la imagen",
+        description: "Error al subir la imagen",
         variant: "destructive"
       });
       return null;
@@ -115,48 +161,28 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     }
   };
 
-  const removeImage = () => {
-    setImageFile(null);
-    setImagePreview(null);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.name.trim()) {
-      toast({
-        title: "Error",
-        description: "El nombre del producto es obligatorio",
-        variant: "destructive"
-      });
-      return;
-    }
-
+    setError(null);
     setSaving(true);
-    try {
-      let imageUrl = product?.image_url || null;
 
-      // Upload new image if selected
+    try {
+      let imageUrl = imagePreview;
+      
       if (imageFile) {
-        const uploadedUrl = await uploadImage();
-        if (uploadedUrl) {
-          imageUrl = uploadedUrl;
+        imageUrl = await uploadImage();
+        if (!imageUrl) {
+          setSaving(false);
+          return;
         }
       }
 
       const productData = {
-        ...formData,
-        category_id: formData.category_id || null,
-        sku: formData.sku || null,
-        barcode: formData.barcode || null,
-        code: formData.code || null,
-        description: formData.description || null,
-        presentation: formData.presentation || null,
-        concentration: formData.concentration || null,
-        laboratory: formData.laboratory || null,
-        expiry_date: formData.expiry_date || null,
-        image_url: imageUrl
-      };
+         ...formData,
+         location_id: formData.location_id === 'none' ? null : formData.location_id,
+         category_id: formData.category_id === 'none' ? null : formData.category_id,
+         image_url: imageUrl
+       };
 
       if (product) {
         await updateProduct(product.id, productData);
@@ -170,31 +196,35 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
           title: "Éxito",
           description: "Producto creado correctamente"
         });
-        // Reset form
-        setFormData({
-          name: '',
-          description: '',
-          sku: '',
-          barcode: '',
-          code: '',
-          category_id: '',
-          unit_type: 'unidad',
-          presentation: '',
-          concentration: '',
-          laboratory: '',
-          expiry_date: '',
-          sale_price: 0,
-          purchase_price: 0,
-          min_stock: 0,
-          max_stock: 0,
-          requires_prescription: false,
-          active: true
-        });
+        
+        // Limpiar formulario
+         setFormData({
+           name: '',
+           description: '',
+           sku: '',
+           barcode: '',
+           code: '',
+           category_id: 'none',
+           unit_type: 'unidad',
+           presentation: '',
+           concentration: '',
+           laboratory: '',
+           location_id: 'none',
+           expiry_date: '',
+           sale_price: 0,
+           purchase_price: 0,
+           min_stock: 0,
+           max_stock: 0,
+           requires_prescription: false,
+           active: true
+         });
         setImageFile(null);
         setImagePreview(null);
       }
       onSave?.();
     } catch (error) {
+      console.error('Error saving product:', error);
+      setError(error instanceof Error ? error.message : 'Error al guardar el producto');
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Error procesando producto",
@@ -208,6 +238,30 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const updateField = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+
+  // Mostrar error si existe
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Error en el formulario</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-red-500 mb-4">{error}</p>
+          <div className="flex gap-2">
+            <Button onClick={() => setError(null)} variant="outline">
+              Reintentar
+            </Button>
+            {onCancel && (
+              <Button onClick={onCancel} variant="outline">
+                Cerrar
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -288,10 +342,10 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                 id="sku"
                 value={formData.sku}
                 onChange={(e) => updateField('sku', e.target.value)}
-                placeholder="Código SKU"
+                placeholder="SKU del producto"
               />
             </div>
-
+            
             <div>
               <Label htmlFor="barcode">Código de Barras</Label>
               <Input
@@ -314,99 +368,51 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
             />
           </div>
 
-          {/* Información farmacéutica */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="presentation">Presentación</Label>
-              <Input
-                id="presentation"
-                value={formData.presentation}
-                onChange={(e) => updateField('presentation', e.target.value)}
-                placeholder="Tabletas, Cápsulas, etc."
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="concentration">Concentración</Label>
-              <Input
-                id="concentration"
-                value={formData.concentration}
-                onChange={(e) => updateField('concentration', e.target.value)}
-                placeholder="500mg, 250ml, etc."
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="laboratory">Laboratorio</Label>
-              <Input
-                id="laboratory"
-                value={formData.laboratory}
-                onChange={(e) => updateField('laboratory', e.target.value)}
-                placeholder="Nombre del laboratorio"
-              />
-            </div>
-          </div>
-
+          {/* Categoría y Ubicación */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="category">Categoría</Label>
+              <Label>Ubicación</Label>
+              <Select value={formData.location_id} onValueChange={(value) => updateField('location_id', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder={locationsLoading ? "Cargando ubicaciones..." : "Seleccionar ubicación"} />
+                </SelectTrigger>
+                <SelectContent>
+                   <SelectItem value="none">Sin ubicación</SelectItem>
+                   {locationsError ? (
+                     <SelectItem value="error" disabled>
+                       Error cargando ubicaciones
+                     </SelectItem>
+                   ) : (
+                     locations?.map((location) => (
+                       <SelectItem key={location.id} value={location.id}>
+                         {location.name}
+                       </SelectItem>
+                     ))
+                   )}
+                 </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label>Categoría</Label>
               <Select value={formData.category_id} onValueChange={(value) => updateField('category_id', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Seleccionar categoría" />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
+                   <SelectItem value="none">Sin categoría</SelectItem>
+                   {categories.map((category) => (
+                     <SelectItem key={category.id} value={category.id}>
+                       {category.name}
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
               </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="expiry_date">Fecha de Vencimiento</Label>
-              <Input
-                id="expiry_date"
-                type="date"
-                value={formData.expiry_date}
-                onChange={(e) => updateField('expiry_date', e.target.value)}
-              />
             </div>
           </div>
 
-          {/* Precios y stock */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label htmlFor="unit_type">Tipo de Unidad</Label>
-              <Select value={formData.unit_type} onValueChange={(value) => updateField('unit_type', value)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unidad">Unidad</SelectItem>
-                  <SelectItem value="caja">Caja</SelectItem>
-                  <SelectItem value="blister">Blister</SelectItem>
-                  <SelectItem value="frasco">Frasco</SelectItem>
-                  <SelectItem value="ml">Mililitros</SelectItem>
-                  <SelectItem value="gr">Gramos</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="sale_price">Precio de Venta</Label>
-              <Input
-                id="sale_price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.sale_price}
-                onChange={(e) => updateField('sale_price', parseFloat(e.target.value) || 0)}
-                placeholder="0.00"
-              />
-            </div>
-
+          {/* Precios */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="purchase_price">Precio de Compra</Label>
               <Input
@@ -419,8 +425,22 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                 placeholder="0.00"
               />
             </div>
+            
+            <div>
+              <Label htmlFor="sale_price">Precio de Venta</Label>
+              <Input
+                id="sale_price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.sale_price}
+                onChange={(e) => updateField('sale_price', parseFloat(e.target.value) || 0)}
+                placeholder="0.00"
+              />
+            </div>
           </div>
 
+          {/* Stock */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="min_stock">Stock Mínimo</Label>
@@ -433,7 +453,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                 placeholder="0"
               />
             </div>
-
+            
             <div>
               <Label htmlFor="max_stock">Stock Máximo</Label>
               <Input
@@ -447,7 +467,8 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          {/* Configuraciones adicionales */}
+          <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <Switch
                 id="requires_prescription"
@@ -456,7 +477,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
               />
               <Label htmlFor="requires_prescription">Requiere Receta</Label>
             </div>
-
+            
             <div className="flex items-center space-x-2">
               <Switch
                 id="active"
@@ -467,8 +488,12 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Button type="submit" disabled={saving || uploading}>
+          {/* Botones */}
+          <div className="flex justify-end space-x-2">
+            <Button
+              type="submit"
+              disabled={saving || uploading}
+            >
               {saving ? 'Guardando...' : (product ? 'Actualizar' : 'Crear')}
             </Button>
             {onCancel && (
