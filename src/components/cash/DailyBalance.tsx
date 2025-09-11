@@ -10,6 +10,7 @@ import { CalendarDays, DollarSign, TrendingUp, TrendingDown, Calculator, Printer
 import { useCashRegister, CashRegisterSession } from "@/hooks/useCashRegister";
 import { startOfDay, endOfDay, format, isToday } from "date-fns";
 import { es } from "date-fns/locale";
+import { CashDebug } from "@/components/debug/CashDebug";
 interface DailyBalanceData {
   date: string;
   totalSessions: number;
@@ -34,10 +35,23 @@ export function DailyBalance() {
     const dayStart = startOfDay(targetDate);
     const dayEnd = endOfDay(targetDate);
 
+    console.log('Debug - Calculando balance para fecha:', date);
+    console.log('Debug - Rango de fecha:', { dayStart, dayEnd });
+    console.log('Debug - Total sesiones disponibles:', sessions.length);
+    
     const daySessions = sessions.filter(session => {
       const sessionDate = new Date(session.opened_at);
-      return sessionDate >= dayStart && sessionDate <= dayEnd;
+      const isInRange = sessionDate >= dayStart && sessionDate <= dayEnd;
+      console.log('Debug - Sesión:', {
+        id: session.id,
+        opened_at: session.opened_at,
+        sessionDate,
+        isInRange
+      });
+      return isInRange;
     });
+    
+    console.log('Debug - Sesiones filtradas para el día:', daySessions.length);
 
     const totalOpeningAmount = daySessions.reduce((sum, session) => sum + session.opening_amount, 0);
     const totalClosingAmount = daySessions.reduce((sum, session) => sum + (session.closing_amount || 0), 0);
@@ -341,6 +355,9 @@ export function DailyBalance() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Debug Component - Temporal */}
+      <CashDebug />
     </div>
   );
 }
