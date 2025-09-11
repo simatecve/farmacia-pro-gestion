@@ -10,7 +10,7 @@ import { CalendarDays, DollarSign, TrendingUp, TrendingDown, Calculator, Printer
 import { useCashRegister, CashRegisterSession } from "@/hooks/useCashRegister";
 import { startOfDay, endOfDay, format, isToday } from "date-fns";
 import { es } from "date-fns/locale";
-import { CashDebug } from "@/components/debug/CashDebug";
+// Debug component removed
 interface DailyBalanceData {
   date: string;
   totalSessions: number;
@@ -356,8 +356,7 @@ export function DailyBalance() {
         </CardContent>
       </Card>
       
-      {/* Debug Component - Temporal */}
-      <CashDebug />
+
     </div>
   );
 }

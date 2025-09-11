@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { seedTestData } from '@/utils/seedData';
+// Seed data utility removed
 
 export function QuickProductManager() {
   const [loading, setLoading] = useState(false);
@@ -18,32 +18,7 @@ export function QuickProductManager() {
   });
   const { toast } = useToast();
 
-  const handleSeedData = async () => {
-    setLoading(true);
-    try {
-      const result = await seedTestData();
-      if (result.success) {
-        toast({
-          title: "Datos de prueba creados",
-          description: "Se han agregado productos de ejemplo a la base de datos",
-        });
-      } else {
-        toast({
-          title: "Error al crear datos",
-          description: result.error,
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error inesperado",
-        description: "Ocurrió un error al crear los datos de prueba",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Seed data function removed
 
   const handleAddProduct = async () => {
     if (!productData.name || !productData.sale_price) {
@@ -152,15 +127,7 @@ export function QuickProductManager() {
           <CardTitle>Gestión Rápida de Productos</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button 
-            onClick={handleSeedData} 
-            disabled={loading}
-            className="w-full"
-          >
-            {loading ? 'Creando...' : 'Crear Productos de Prueba'}
-          </Button>
-          
-          <div className="border-t pt-4">
+          <div className="pt-4">
             <h3 className="font-semibold mb-3">Agregar Producto Individual</h3>
             <div className="grid grid-cols-2 gap-3">
               <div>

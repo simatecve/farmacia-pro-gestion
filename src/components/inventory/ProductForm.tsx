@@ -32,6 +32,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
      presentation: '',
      concentration: '',
      laboratory: '',
+     registro_sanitario: '',
      location_id: 'none',
      expiry_date: '',
      sale_price: 0,
@@ -68,6 +69,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
          presentation: product.presentation || '',
          concentration: product.concentration || '',
          laboratory: product.laboratory || '',
+         registro_sanitario: (product as any).registro_sanitario || '',
          location_id: product.location_id || 'none',
          expiry_date: product.expiry_date || '',
          sale_price: product.sale_price || 0,
@@ -196,9 +198,10 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
          code: formData.code.trim() || null,
          category_id: formData.category_id === 'none' ? null : formData.category_id,
          unit_type: formData.unit_type || 'unidad',
-         presentation: formData.presentation.trim() || null,
-         concentration: formData.concentration.trim() || null,
-         laboratory: formData.laboratory.trim() || null,
+         presentation: formData.presentation || null,
+         concentration: formData.concentration || null,
+         laboratory: formData.laboratory || null,
+         registro_sanitario: formData.registro_sanitario || null,
          location_id: formData.location_id === 'none' ? null : formData.location_id,
          expiry_date: formData.expiry_date || null,
          sale_price: formData.sale_price || 0,
@@ -241,6 +244,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
            presentation: '',
            concentration: '',
            laboratory: '',
+           registro_sanitario: '',
            location_id: 'none',
            expiry_date: '',
            sale_price: 0,
@@ -476,6 +480,64 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                 value={formData.sale_price}
                 onChange={(e) => updateField('sale_price', parseFloat(e.target.value) || 0)}
                 placeholder="0.00"
+              />
+            </div>
+          </div>
+
+          {/* Información Farmacéutica */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Información Farmacéutica</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="presentation">Presentación</Label>
+                <Input
+                  id="presentation"
+                  value={formData.presentation}
+                  onChange={(e) => updateField('presentation', e.target.value)}
+                  placeholder="Ej: Tabletas, Jarabe, Cápsulas"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="concentration">Concentración</Label>
+                <Input
+                  id="concentration"
+                  value={formData.concentration}
+                  onChange={(e) => updateField('concentration', e.target.value)}
+                  placeholder="Ej: 500mg, 250ml"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="laboratory">Laboratorio</Label>
+                <Input
+                  id="laboratory"
+                  value={formData.laboratory}
+                  onChange={(e) => updateField('laboratory', e.target.value)}
+                  placeholder="Nombre del laboratorio"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="registro_sanitario">Registro Sanitario</Label>
+                <Input
+                  id="registro_sanitario"
+                  value={formData.registro_sanitario}
+                  onChange={(e) => updateField('registro_sanitario', e.target.value)}
+                  placeholder="Número de registro sanitario"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="expiry_date">Fecha de Vencimiento</Label>
+              <Input
+                id="expiry_date"
+                type="date"
+                value={formData.expiry_date}
+                onChange={(e) => updateField('expiry_date', e.target.value)}
               />
             </div>
           </div>

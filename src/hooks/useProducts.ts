@@ -13,6 +13,7 @@ export interface Product {
   presentation: string | null;
   concentration: string | null;
   laboratory: string | null;
+  registro_sanitario: string | null;
   image_url: string | null;
   expiry_date: string | null;
   sale_price: number;

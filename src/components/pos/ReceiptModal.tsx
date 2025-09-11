@@ -38,21 +38,25 @@ export function ReceiptModal({ isOpen, onClose, sale, client }: ReceiptModalProp
   };
 
   const generateReceiptText = () => {
+    const companyName = companySettings?.company_name || 'QUINGA SANCHEZ JOHN WILFRIDO';
+    const companyRuc = companySettings?.tax_id || '1709738635001';
+    const companyAddress = companySettings?.address || 'PICHINCHA / QUITO / LA MAGDALENA / OE 7B OE7-42';
+    const companyPhone = companySettings?.phone || '0987654321';
+    const companyEmail = companySettings?.email || 'farmacia@daalef.com';
+    
     const receiptText = `
-        QUINGA SANCHEZ JOHN WILFRIDO
+        ${companyName}
 
-        RUC: 1709738635001
-Dirección: PICHINCHA / QUITO / LA MAGDALENA / OE
-                7B OE7-42
-Teléfono: 0987654321
-Email: farmacia@daalef.com
+        RUC: ${companyRuc}
+Dirección: ${companyAddress}
+Teléfono: ${companyPhone}
+Email: ${companyEmail}
 
         FACTURA DE VENTA
         N°: ${sale.sale_number}
 
-Fecha: ${format(new Date(sale.created_at), "dd/MM/yyyy", { locale: es })}
-Hora: ${format(new Date(sale.created_at), "HH:mm:ss", { locale: es })}
-Cajero: QUINGA SANCHEZ JOHN WILFRIDO
+Fecha y Hora: ${format(new Date(sale.created_at), "dd/MM/yyyy HH:mm:ss", { locale: es })}
+Cajero: ${companyName}
 Cliente: ${client?.name || 'CONSUMIDOR FINAL'}
 ${client?.identification_number ? `Cédula: ${client.identification_number}` : ''}
 
@@ -71,11 +75,14 @@ ${sale.items?.map(item =>
                     TOTAL:          ${sale.total_amount.toFixed(2)}
 
 Forma de Pago: ${getPaymentMethodLabel(sale.payment_method || '')}
-Efectivo Recibido:              ${sale.total_amount.toFixed(2)}
-Cambio:                         0.00
+${sale.payment_method === 'cash' && sale.cash_received ? `Efectivo Recibido:              ${sale.cash_received.toFixed(2)}` : ''}
+${sale.payment_method === 'cash' && sale.change_amount ? `Cambio:                         ${sale.change_amount.toFixed(2)}` : ''}
 
         Gracias por su compra
-        QUINGA SANCHEZ JOHN WILFRIDO
+        ${companyName}
+        
+Su comprobante electrónico ha sido generado correctamente.
+Recuerde también puede consultar su comprobante en el portal del SRI.
     `;
     return receiptText;
   };
@@ -115,128 +122,82 @@ Cambio:                         0.00
         
         <ScrollArea className="max-h-[70vh]">
           <Card className="receipt-print">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               {/* Header */}
-              <div className="text-center mb-6">
-                <h2 className="text-lg font-bold">QUINGA SANCHEZ JOHN WILFRIDO</h2>
-                <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-                  <p>RUC: 1709738635001</p>
-                  <p>Dirección: PICHINCHA / QUITO / LA MAGDALENA / OE</p>
-                  <p className="text-center">7B OE7-42</p>
-                  <p>Teléfono: 0987654321</p>
-                  <p>Email: farmacia@daalef.com</p>
-                </div>
-                <div className="mt-4">
-                  <h3 className="font-bold">FACTURA DE VENTA</h3>
-                  <p className="text-sm">N°: {sale.sale_number}</p>
-                </div>
+              <div className="text-center mb-4">
+                <h2 className="text-lg font-bold">FARMACIA DAALEF</h2>
+                <p className="text-sm mt-2">Ticket de Venta</p>
+                <p className="text-sm font-medium">N°: {sale.sale_number}</p>
               </div>
 
-            <Separator className="mb-4" />
+            <Separator className="mb-3" />
 
             {/* Sale Info */}
-            <div className="space-y-2 mb-4">
+            <div className="space-y-1 mb-3">
               <div className="flex justify-between text-sm">
-                <span className="font-medium">Fecha:</span>
-                <span>{format(new Date(sale.created_at), "dd/MM/yyyy", { locale: es })}</span>
+                <span>Fecha:</span>
+                <span>{format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: es })}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="font-medium">Hora:</span>
-                <span>{format(new Date(sale.created_at), "HH:mm:ss", { locale: es })}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="font-medium">Cajero:</span>
-                <span>QUINGA SANCHEZ JOHN WILFRIDO</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="font-medium">Cliente:</span>
+                <span>Cliente:</span>
                 <span>{client?.name || 'CONSUMIDOR FINAL'}</span>
               </div>
-              {client?.identification_number && (
-                <div className="flex justify-between text-sm">
-                  <span className="font-medium">Cédula:</span>
-                  <span>{client.identification_number}</span>
-                </div>
-              )}
             </div>
 
-            <Separator className="mb-4" />
+            <Separator className="mb-3" />
 
             {/* Products */}
-            <div className="space-y-2 mb-4">
-              <div className="grid grid-cols-4 gap-2 text-xs font-medium">
-                <div className="col-span-1">PRODUCTO</div>
-                <div className="col-span-1 text-center">CANT</div>
-                <div className="col-span-1 text-right">PRECIO</div>
-                <div className="col-span-1 text-right">TOTAL</div>
-              </div>
+            <div className="space-y-1 mb-3">
+              <p className="text-sm font-medium">PRODUCTOS</p>
               <Separator />
               {sale.items?.map((item, index) => (
-                <div key={index} className="space-y-1">
-                  <div className="text-sm font-medium">{item.product_name}</div>
-                  <div className="grid grid-cols-4 gap-2 text-sm">
-                    <div className="col-span-1"></div>
-                    <div className="col-span-1 text-center">{item.quantity}</div>
-                    <div className="col-span-1 text-right">${item.unit_price.toFixed(2)}</div>
-                    <div className="col-span-1 text-right">${item.total_price.toFixed(2)}</div>
+                <div key={index} className="text-sm">
+                  <div>{item.product_name}</div>
+                  <div className="flex justify-between">
+                    <span>{item.quantity} x ${item.unit_price.toFixed(2)}</span>
+                    <span>${item.total_price.toFixed(2)}</span>
                   </div>
                 </div>
               ))}
             </div>
 
-            <Separator className="mb-4" />
+            <Separator className="mb-3" />
 
             {/* Totals */}
-            <div className="space-y-2 mb-4">
-              <div className="flex justify-between text-sm">
-                <span>Subtotal 0%:</span>
-                <span>{(sale.total_amount - sale.tax_amount).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Subtotal 15%:</span>
-                <span>0.00</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>{taxName} {(taxRate * 100).toFixed(0)}%:</span>
-                <span>{sale.tax_amount.toFixed(2)}</span>
-              </div>
+            <div className="space-y-1 mb-3">
               {sale.discount_amount > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
+                <div className="flex justify-between text-sm">
                   <span>Descuento:</span>
-                  <span>{sale.discount_amount.toFixed(2)}</span>
+                  <span>-${sale.discount_amount.toFixed(2)}</span>
                 </div>
               )}
-              <Separator />
-              <div className="flex justify-between text-lg font-bold">
+              <div className="flex justify-between text-base font-bold">
                 <span>TOTAL:</span>
-                <span>{sale.total_amount.toFixed(2)}</span>
+                <span>${sale.total_amount.toFixed(2)}</span>
               </div>
             </div>
 
-            <Separator className="mb-4" />
+            <Separator className="mb-3" />
 
             {/* Payment Method */}
-            <div className="space-y-2 mb-4">
+            <div className="space-y-1 mb-3">
               <div className="flex justify-between text-sm">
-                <span className="font-medium">Forma de Pago:</span>
+                <span>Pago:</span>
                 <span>{getPaymentMethodLabel(sale.payment_method || '')}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="font-medium">Efectivo Recibido:</span>
-                <span>{sale.total_amount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="font-medium">Cambio:</span>
-                <span>0.00</span>
-              </div>
+              {sale.payment_method === 'cash' && sale.change_amount > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>Cambio:</span>
+                  <span>${(sale.change_amount || 0).toFixed(2)}</span>
+                </div>
+              )}
             </div>
 
-            <Separator className="mb-4" />
+            <Separator className="mb-3" />
 
             {/* Footer */}
-            <div className="text-center text-sm space-y-2">
-              <p className="font-medium">Gracias por su compra</p>
-              <p className="font-bold">QUINGA SANCHEZ JOHN WILFRIDO</p>
+            <div className="text-center text-sm">
+              <p>¡Gracias por su compra!</p>
             </div>
           </CardContent>
         </Card>
@@ -261,7 +222,7 @@ Cambio:                         0.00
   );
 }
 
-// Print styles
+// Print styles - only inject once
 const printStyles = `
 @media print {
   .no-print {
@@ -269,19 +230,20 @@ const printStyles = `
   }
   
   .receipt-print {
-    width: 80mm;
+    width: 300px;
     margin: 0;
     box-shadow: none;
     border: none;
+    font-family: monospace;
   }
   
   .receipt-print * {
     font-size: 12px !important;
-    line-height: 1.2 !important;
+    line-height: 1.3 !important;
   }
   
   .receipt-print h2 {
-    font-size: 16px !important;
+    font-size: 14px !important;
     font-weight: bold !important;
   }
   
@@ -291,15 +253,16 @@ const printStyles = `
   }
   
   @page {
-    margin: 0;
-    size: 80mm auto;
+    margin: 5mm;
+    size: auto;
   }
 }
 `;
 
-// Inject print styles
-if (typeof document !== 'undefined') {
+// Inject print styles only once
+if (typeof document !== 'undefined' && !document.getElementById('receipt-print-styles')) {
   const styleSheet = document.createElement('style');
+  styleSheet.id = 'receipt-print-styles';
   styleSheet.textContent = printStyles;
   document.head.appendChild(styleSheet);
 }
