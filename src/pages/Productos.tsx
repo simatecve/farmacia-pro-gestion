@@ -23,7 +23,7 @@ export default function Productos() {
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (product.sku && product.sku.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (product.code && product.code.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (product.category?.name && product.category.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (((product as any)?.category?.name) && ((product as any).category.name.toLowerCase().includes(searchTerm.toLowerCase()))) ||
     (product.laboratory && product.laboratory.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
@@ -244,7 +244,7 @@ export default function Productos() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
-                            {product.category?.name || (
+                            {((product as any)?.category?.name) || (
                               <span className="text-muted-foreground italic">Sin categoría</span>
                             )}
                             {product.laboratory && (
@@ -253,7 +253,7 @@ export default function Productos() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {product.location?.name || (
+                          {((product as any)?.location?.name) || (
                             <span className="text-muted-foreground italic">Sin ubicación</span>
                           )}
                         </TableCell>

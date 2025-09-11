@@ -29,10 +29,10 @@ interface OrderItem {
 
 export function PurchaseOrderForm({ purchaseOrder, onSuccess }: PurchaseOrderFormProps) {
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [items, setItems] = useState<OrderItem[]>([]);
   
-  const { orders, loading, error, createOrder, updateOrder } = usePurchaseOrders();
+  const { createOrder, updateOrder } = usePurchaseOrders();
   const { suppliers } = useSuppliers();
   const { products } = useProducts();
 
@@ -45,14 +45,17 @@ export function PurchaseOrderForm({ purchaseOrder, onSuccess }: PurchaseOrderFor
   });
 
   useEffect(() => {
-    if (purchaseOrder?.items) {
-      setItems(purchaseOrder.items.map(item => ({
-        product_id: item.product_id,
-        product_name: item.product_name || '',
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total_price: item.total_price
-      })));
+    const po: any = purchaseOrder as any;
+    if (po?.items) {
+      setItems(
+        po.items.map((item: any) => ({
+          product_id: item.product_id,
+          product_name: item.product_name || '',
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          total_price: item.total_price
+        }))
+      );
     }
   }, [purchaseOrder]);
 
@@ -115,7 +118,7 @@ export function PurchaseOrderForm({ purchaseOrder, onSuccess }: PurchaseOrderFor
       return;
     }
 
-    setLoading(true);
+    setIsSaving(true);
     
     try {
       const { subtotal, taxAmount, totalAmount } = calculateTotals();
@@ -128,14 +131,8 @@ export function PurchaseOrderForm({ purchaseOrder, onSuccess }: PurchaseOrderFor
       };
 
       const result = purchaseOrder
-        ? await updatePurchaseOrder(purchaseOrder.id, orderData)
-        : await createPurchaseOrder(orderData, items.map(item => ({
-            product_id: item.product_id,
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-            total_price: item.total_price
-          })));
-
+        ? await updateOrder(purchaseOrder.id, orderData)
+        : await createOrder(orderData);
       if (result.success) {
         toast.success(purchaseOrder ? "Orden de compra actualizada correctamente" : "Orden de compra creada correctamente");
         
@@ -156,7 +153,7 @@ export function PurchaseOrderForm({ purchaseOrder, onSuccess }: PurchaseOrderFor
     } catch (error) {
       console.error('Error:', error);
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -373,8 +370,8 @@ export function PurchaseOrderForm({ purchaseOrder, onSuccess }: PurchaseOrderFor
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Guardando...' : purchaseOrder ? 'Actualizar' : 'Crear'}
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? 'Guardando...' : purchaseOrder ? 'Actualizar' : 'Crear'}
             </Button>
           </div>
         </form>

@@ -25,11 +25,11 @@ export default function Inventario() {
     return (
       item.product?.name.toLowerCase().includes(searchLower) ||
       item.product?.sku?.toLowerCase().includes(searchLower) ||
-      item.product?.barcode?.toLowerCase().includes(searchLower) ||
-      item.product?.description?.toLowerCase().includes(searchLower) ||
+      (item.product as any)?.barcode?.toLowerCase().includes(searchLower) ||
+      (item.product as any)?.description?.toLowerCase().includes(searchLower) ||
       item.location?.name.toLowerCase().includes(searchLower) ||
       item.batch_number?.toLowerCase().includes(searchLower) ||
-      item.product?.categories?.name.toLowerCase().includes(searchLower)
+      (item.product as any)?.categories?.name?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -40,7 +40,7 @@ export default function Inventario() {
     return (
       movement.product?.name.toLowerCase().includes(searchLower) ||
       movement.product?.sku?.toLowerCase().includes(searchLower) ||
-      movement.product?.barcode?.toLowerCase().includes(searchLower) ||
+      (movement.product as any)?.barcode?.toLowerCase().includes(searchLower) ||
       movement.location?.name.toLowerCase().includes(searchLower) ||
       movement.movement_type.toLowerCase().includes(searchLower) ||
       movement.notes?.toLowerCase().includes(searchLower)

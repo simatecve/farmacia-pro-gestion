@@ -47,9 +47,31 @@ export function useProductsSimple() {
         .select('*')
         .order('name');
       
-      if (error) throw error;
-      
-      setProducts(data || []);
+      const mapped: ProductSimple[] = ((data as any[]) || []).map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        sku: item.sku,
+        barcode: item.barcode,
+        code: item.code,
+        category_id: item.category_id,
+        unit_type: item.unit_type,
+        presentation: item.presentation,
+        concentration: item.concentration,
+        laboratory: item.laboratory,
+        image_url: item.image_url,
+        expiry_date: item.expiry_date,
+        sale_price: item.sale_price,
+        purchase_price: item.purchase_price,
+        min_stock: item.min_stock,
+        max_stock: item.max_stock,
+        requires_prescription: item.requires_prescription,
+        active: item.active,
+        location_id: item.location_id ?? null,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+      }));
+      setProducts(mapped);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error cargando productos');
     } finally {
@@ -59,16 +81,44 @@ export function useProductsSimple() {
 
   const createProduct = async (productData: Partial<ProductSimple>) => {
     try {
+      const clean: any = { ...productData };
+      delete clean.category;
+      delete clean.location;
       const { data, error } = await supabase
         .from('products')
-        .insert([productData])
+        .insert([clean as any])
         .select()
         .single();
       
       if (error) throw error;
       
-      setProducts(prev => [...prev, data]);
-      return data;
+      const mapped: ProductSimple = {
+        id: (data as any).id,
+        name: (data as any).name,
+        description: (data as any).description,
+        sku: (data as any).sku,
+        barcode: (data as any).barcode,
+        code: (data as any).code,
+        category_id: (data as any).category_id,
+        unit_type: (data as any).unit_type,
+        presentation: (data as any).presentation,
+        concentration: (data as any).concentration,
+        laboratory: (data as any).laboratory,
+        image_url: (data as any).image_url,
+        expiry_date: (data as any).expiry_date,
+        sale_price: (data as any).sale_price,
+        purchase_price: (data as any).purchase_price,
+        min_stock: (data as any).min_stock,
+        max_stock: (data as any).max_stock,
+        requires_prescription: (data as any).requires_prescription,
+        active: (data as any).active,
+        location_id: (data as any).location_id ?? null,
+        created_at: (data as any).created_at,
+        updated_at: (data as any).updated_at,
+      };
+      
+      setProducts(prev => [...prev, mapped]);
+      return mapped;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Error creando producto');
     }
@@ -76,17 +126,45 @@ export function useProductsSimple() {
 
   const updateProduct = async (id: string, productData: Partial<ProductSimple>) => {
     try {
+      const clean: any = { ...productData };
+      delete clean.category;
+      delete clean.location;
       const { data, error } = await supabase
         .from('products')
-        .update(productData)
+        .update(clean as any)
         .eq('id', id)
         .select()
         .single();
       
       if (error) throw error;
       
-      setProducts(prev => prev.map(prod => prod.id === id ? data : prod));
-      return data;
+      const mapped: ProductSimple = {
+        id: (data as any).id,
+        name: (data as any).name,
+        description: (data as any).description,
+        sku: (data as any).sku,
+        barcode: (data as any).barcode,
+        code: (data as any).code,
+        category_id: (data as any).category_id,
+        unit_type: (data as any).unit_type,
+        presentation: (data as any).presentation,
+        concentration: (data as any).concentration,
+        laboratory: (data as any).laboratory,
+        image_url: (data as any).image_url,
+        expiry_date: (data as any).expiry_date,
+        sale_price: (data as any).sale_price,
+        purchase_price: (data as any).purchase_price,
+        min_stock: (data as any).min_stock,
+        max_stock: (data as any).max_stock,
+        requires_prescription: (data as any).requires_prescription,
+        active: (data as any).active,
+        location_id: (data as any).location_id ?? null,
+        created_at: (data as any).created_at,
+        updated_at: (data as any).updated_at,
+      };
+      
+      setProducts(prev => prev.map(prod => prod.id === id ? mapped : prod));
+      return mapped;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Error actualizando producto');
     }

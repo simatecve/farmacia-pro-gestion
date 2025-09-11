@@ -62,7 +62,7 @@ export function useProducts() {
         max_stock: item.max_stock,
         requires_prescription: item.requires_prescription,
         active: item.active,
-        location_id: item.location_id || null,
+        location_id: (item as any).location_id ?? null,
         created_at: item.created_at,
         updated_at: item.updated_at,
       }));
@@ -105,7 +105,7 @@ export function useProducts() {
         max_stock: data.max_stock,
         requires_prescription: data.requires_prescription,
         active: data.active,
-        location_id: data.location_id || null,
+        location_id: (data as any).location_id ?? null,
         created_at: data.created_at,
         updated_at: data.updated_at,
       };
@@ -148,7 +148,7 @@ export function useProducts() {
         max_stock: data.max_stock,
         requires_prescription: data.requires_prescription,
         active: data.active,
-        location_id: data.location_id || null,
+        location_id: (data as any).location_id ?? null,
         created_at: data.created_at,
         updated_at: data.updated_at,
       };
