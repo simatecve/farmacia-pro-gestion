@@ -1,36 +1,33 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, ShoppingCart, Package, Users, FileText } from "lucide-react";
+import { CashDrawerButton } from "@/components/cash/CashDrawerButton";
 
 const quickActions = [
   {
     title: "Nueva Venta",
-    description: "Registrar venta rápida",
+    description: "Iniciar transacción",
     icon: ShoppingCart,
-    variant: "primary" as const,
-    href: "/ventas/nueva"
+    href: "/pos",
   },
   {
     title: "Agregar Producto",
-    description: "Nuevo medicamento/producto",
-    icon: Package,
-    variant: "secondary" as const,
-    href: "/productos/nuevo"
+    description: "Nuevo producto",
+    icon: Plus,
+    href: "/inventario?action=add",
   },
   {
     title: "Nuevo Cliente",
     description: "Registrar cliente",
     icon: Users,
-    variant: "outline" as const,
-    href: "/clientes/nuevo"
+    href: "/clientes?action=add",
   },
   {
     title: "Generar Reporte",
-    description: "Reporte de ventas/inventario",
+    description: "Ver estadísticas",
     icon: FileText,
-    variant: "outline" as const,
-    href: "/reportes"
-  }
+    href: "/reportes",
+  },
 ];
 
 export function QuickActions() {
@@ -43,25 +40,37 @@ export function QuickActions() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {quickActions.map((action) => (
-            <Button
-              key={action.title}
-              variant={action.variant}
-              className="h-auto p-3 flex flex-col items-start gap-2 hover-scale transition-smooth text-left"
-              asChild
-            >
-              <a href={action.href}>
-                <div className="flex items-center gap-2 w-full">
-                  <action.icon className="h-4 w-4 flex-shrink-0" />
-                  <span className="font-medium text-sm truncate">{action.title}</span>
-                </div>
-                <p className="text-xs text-muted-foreground text-left w-full line-clamp-2">
-                  {action.description}
-                </p>
-              </a>
-            </Button>
-          ))}
+        <div className="grid grid-cols-2 gap-4">
+          {quickActions.map((action) => {
+            const Icon = action.icon;
+            return (
+              <Button
+                key={action.title}
+                variant="outline"
+                className="h-auto p-4 flex flex-col items-start gap-2 hover:bg-accent"
+                asChild
+              >
+                <a href={action.href}>
+                  <Icon className="h-5 w-5 text-primary" />
+                  <div className="text-left">
+                    <div className="font-medium">{action.title}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {action.description}
+                    </div>
+                  </div>
+                </a>
+              </Button>
+            );
+          })}
+          
+          {/* Botón de Apertura de Caja */}
+          <div className="col-span-2">
+            <CashDrawerButton 
+              variant="outline" 
+              className="w-full h-auto p-4 flex items-center justify-center gap-2 hover:bg-accent"
+              showText={true}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

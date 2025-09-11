@@ -3,9 +3,10 @@ import { CompanyForm } from "@/components/settings/CompanyForm";
 import { TaxSettings } from "@/components/settings/TaxSettings";
 import { DeviceSettings } from "@/components/settings/DeviceSettings";
 import { PrintSettings } from "@/components/settings/PrintSettings";
+import { SecuritySettings } from "@/components/settings/SecuritySettings";
 import { UserManagement } from "@/components/users/UserManagement";
 import { WebhookSettings } from "@/components/webhooks/WebhookSettings";
-import { Settings, Building2, Receipt, Printer, Cpu, Users, Webhook } from "lucide-react";
+import { Settings, Building2, Receipt, Printer, Cpu, Users, Webhook, Shield } from "lucide-react";
 
 export default function Configuracion() {
   return (
@@ -21,7 +22,7 @@ export default function Configuracion() {
       </div>
 
       <Tabs defaultValue="company" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="company" className="flex items-center gap-2">
             <Building2 className="h-4 w-4" />
             <span className="hidden sm:inline">Empresa</span>
@@ -29,6 +30,10 @@ export default function Configuracion() {
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             <span className="hidden sm:inline">Usuarios</span>
+          </TabsTrigger>
+          <TabsTrigger value="security" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            <span className="hidden sm:inline">Seguridad</span>
           </TabsTrigger>
           <TabsTrigger value="webhooks" className="flex items-center gap-2">
             <Webhook className="h-4 w-4" />
@@ -54,6 +59,10 @@ export default function Configuracion() {
 
         <TabsContent value="users">
           <UserManagement />
+        </TabsContent>
+
+        <TabsContent value="security">
+          <SecuritySettings />
         </TabsContent>
 
         <TabsContent value="webhooks">
