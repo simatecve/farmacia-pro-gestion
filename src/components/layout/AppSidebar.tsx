@@ -97,13 +97,13 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
     return salesItems.filter(item => {
       switch (item.url) {
         case '/pos':
-          return permissions.canAccessPOS;
+          return permissions.canProcessSales;
         case '/caja':
-          return permissions.canManageCashRegister;
+          return permissions.canManageCash;
         case '/ventas':
           return permissions.canViewSales;
         case '/devoluciones':
-          return permissions.canProcessReturns;
+          return permissions.canManageSales;
         case '/reportes':
           return permissions.canViewReports;
         default:
@@ -118,9 +118,9 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
         case '/productos':
           return permissions.canManageProducts;
         case '/categorias':
-          return permissions.canManageCategories;
+          return permissions.canManageProducts;
         case '/ubicaciones':
-          return permissions.canManageLocations;
+          return permissions.canManageProducts;
         case '/inventario':
         case '/compras':
           return permissions.canManageProducts;
@@ -135,13 +135,13 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
       switch (item.url) {
         case '/clientes':
         case '/gestion-clientes':
-          return permissions.canManageCustomers;
+          return permissions.canManageClients;
         case '/proveedores':
-          return permissions.canManageSuppliers;
+          return permissions.canManageClients;
         case '/fidelizacion':
         case '/campanias':
         case '/recordatorios':
-          return permissions.canManageLoyalty;
+          return permissions.canManageClients;
         default:
           return true;
       }
@@ -156,7 +156,7 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
         case '/webhooks':
         case '/auditoria':
         case '/configuracion':
-          return permissions.canAccessAdminPanel;
+          return permissions.canManageSettings;
         default:
           return true;
       }
@@ -246,9 +246,8 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
                   </span>
                 </NavLink>
               ))}
-              </nav>
-            </div>
-          )}
+            </nav>
+          </div>
 
           {/* Ventas y POS */}
           {getFilteredSalesItems().length > 0 && (

@@ -31,7 +31,7 @@ const roleDescriptions: Record<AppRole, string> = {
 
 export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
   const { updateProfile, assignRole, removeRole, canManageRole } = useUserRoles();
-  const { inviteUser } = useUserInvite();
+  const { createUser, inviteUser } = useUserInvite();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   
@@ -87,17 +87,21 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
           description: "Los cambios se han guardado correctamente",
         });
       } else {
-        // Create new user (invite)
-        const primaryRole = Array.from(selectedRoles)[0] || 'viewer';
+        // Crear nuevo usuario
+        const result = await createUser(formData.email, formData.full_name, selectedRoles);
         
-        const inviteResult = await inviteUser(formData.email, formData.full_name, primaryRole);
-        if (!inviteResult.success) {
-          throw new Error(inviteResult.error);
+        if (!result.success) {
+          toast({
+            title: "Error",
+            description: result.error || "Error al crear usuario",
+            variant: "destructive",
+          });
+          return;
         }
 
         toast({
-          title: "Usuario invitado",
-          description: "El usuario ha sido invitado al sistema correctamente",
+          title: "Éxito",
+          description: result.message || "Usuario creado correctamente",
         });
       }
 

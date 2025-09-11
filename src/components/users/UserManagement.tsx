@@ -7,6 +7,7 @@ import { UserPlus, Shield, Edit, Trash2 } from 'lucide-react';
 import { useUserRoles, type AppRole } from '@/hooks/useUserRoles';
 import { UserForm } from './UserForm';
 import { RoleManager } from './RoleManager';
+import { UserInviteInstructions } from './UserInviteInstructions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -28,6 +29,7 @@ export function UserManagement() {
   const { users, currentUserRole, loading, error, canManageUsers } = useUserRoles();
   const [showUserForm, setShowUserForm] = useState(false);
   const [showRoleManager, setShowRoleManager] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
   if (loading) {
@@ -85,19 +87,19 @@ export function UserManagement() {
             </div>
             <div className="flex gap-2">
               <Button
+                onClick={() => setShowUserForm(true)}
+                size="sm"
+              >
+                <UserPlus className="w-4 h-4 mr-2" />
+                Crear Usuario
+              </Button>
+              <Button
                 onClick={() => setShowRoleManager(true)}
                 variant="outline"
                 size="sm"
               >
                 <Shield className="w-4 h-4 mr-2" />
                 Gestionar Roles
-              </Button>
-              <Button
-                onClick={() => setShowUserForm(true)}
-                size="sm"
-              >
-                <UserPlus className="w-4 h-4 mr-2" />
-                Nuevo Usuario
               </Button>
             </div>
           </div>
@@ -179,6 +181,14 @@ export function UserManagement() {
         <RoleManager
           onClose={() => setShowRoleManager(false)}
         />
+      )}
+
+      {showInstructions && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <UserInviteInstructions
+            onClose={() => setShowInstructions(false)}
+          />
+        </div>
       )}
     </div>
   );
