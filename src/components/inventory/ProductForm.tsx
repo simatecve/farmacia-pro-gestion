@@ -167,14 +167,19 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     setSaving(true);
 
     try {
+      console.log('Starting form submission with data:', formData);
+      
       let imageUrl = imagePreview;
       
       if (imageFile) {
+        console.log('Uploading image...');
         imageUrl = await uploadImage();
         if (!imageUrl) {
+          console.error('Image upload failed');
           setSaving(false);
           return;
         }
+        console.log('Image uploaded successfully:', imageUrl);
       }
 
       const productData = {
@@ -184,14 +189,20 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
          image_url: imageUrl
        };
 
+      console.log('Final product data to save:', productData);
+
       if (product) {
+        console.log('Updating product:', product.id);
         await updateProduct(product.id, productData);
+        console.log('Product updated successfully');
         toast({
           title: "Éxito",
           description: "Producto actualizado correctamente"
         });
       } else {
+        console.log('Creating new product...');
         await createProduct(productData);
+        console.log('Product created successfully');
         toast({
           title: "Éxito",
           description: "Producto creado correctamente"
@@ -224,10 +235,15 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       onSave?.();
     } catch (error) {
       console.error('Error saving product:', error);
-      setError(error instanceof Error ? error.message : 'Error al guardar el producto');
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
+      const errorMessage = error instanceof Error ? error.message : 'Error al guardar el producto';
+      console.error('Processed error message:', errorMessage);
+      
+      setError(errorMessage);
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Error procesando producto",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {

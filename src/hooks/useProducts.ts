@@ -77,11 +77,15 @@ export function useProducts() {
 
   const createProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      console.log('Creating product with data:', productData);
+      
       const { data, error } = await supabase
         .from('products')
         .insert([productData])
         .select()
         .single();
+      
+      console.log('Supabase response:', { data, error });
       
       if (error) throw error;
       
@@ -119,12 +123,16 @@ export function useProducts() {
 
   const updateProduct = async (id: string, productData: Partial<Omit<Product, 'id' | 'created_at' | 'updated_at'>>) => {
     try {
+      console.log('Updating product with id:', id, 'data:', productData);
+      
       const { data, error } = await supabase
         .from('products')
         .update(productData)
         .eq('id', id)
         .select()
         .single();
+      
+      console.log('Supabase update response:', { data, error });
       
       if (error) throw error;
       
