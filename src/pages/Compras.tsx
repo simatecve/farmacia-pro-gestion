@@ -1,14 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, FileText, Package, Truck, DollarSign } from 'lucide-react';
+import { Plus, FileText, Package, Truck, DollarSign, CheckCircle } from 'lucide-react';
 import { usePurchaseOrders } from '@/hooks/usePurchaseOrders';
 import { PurchaseOrderForm } from '@/components/purchases/PurchaseOrderForm';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/utils';
+import { toast } from 'sonner';
 
 export default function Compras() {
-  const { orders, loading, error } = usePurchaseOrders();
+  const { orders, loading, error, markOrderAsReceived } = usePurchaseOrders();
+  const [receivingOrder, setReceivingOrder] = useState<string | null>(null);
+
+  const handleReceiveOrder = async (orderId: string) => {
+    setReceivingOrder(orderId);
+    try {
+      const result = await markOrderAsReceived(orderId);
+      if (result.success) {
+        toast.success('Orden recibida correctamente. El inventario ha sido actualizado.');
+      } else {
+        toast.error(result.error || 'Error al recibir la orden');
+      }
+    } catch (error) {
+      toast.error('Error inesperado al recibir la orden');
+    } finally {
+      setReceivingOrder(null);
+    }
+  };
 
   const pendingOrders = orders.filter(order => order.status === 'pending');
   const currentMonth = new Date().getMonth();
@@ -156,11 +174,24 @@ export default function Compras() {
                         Fecha: {new Date(order.order_date).toLocaleDateString('es-ES')}
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className="font-bold text-lg">{formatCurrency(order.total_amount)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {order.items_count} {order.items_count === 1 ? 'producto' : 'productos'}
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <div className="text-right">
+                        <p className="font-bold text-lg">{formatCurrency(order.total_amount)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {order.items_count} {order.items_count === 1 ? 'producto' : 'productos'}
+                        </p>
+                      </div>
+                      {order.status === 'approved' && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleReceiveOrder(order.id)}
+                          disabled={receivingOrder === order.id}
+                          className="ml-2"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          {receivingOrder === order.id ? 'Recibiendo...' : 'Recibir'}
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -26,6 +26,7 @@ import WebhooksConfig from "./pages/WebhooksConfig";
 import Configuracion from "./pages/Configuracion";
 import Auditoria from "./pages/Auditoria";
 import Devoluciones from "./pages/Devoluciones";
+import Kardex from "./pages/Kardex";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { DatabaseTest } from "./components/debug/DatabaseTest";
@@ -47,6 +48,7 @@ const App = () => (
             <Route path="/categorias" element={<MainLayout><Categorias /></MainLayout>} />
             <Route path="/ubicaciones" element={<MainLayout><Ubicaciones /></MainLayout>} />
             <Route path="/inventario" element={<MainLayout><Inventario /></MainLayout>} />
+            <Route path="/kardex" element={<MainLayout><Kardex /></MainLayout>} />
             <Route path="/clientes" element={<MainLayout><Clientes /></MainLayout>} />
             <Route path="/proveedores" element={<MainLayout><Proveedores /></MainLayout>} />
             <Route path="/ventas" element={<MainLayout><Ventas /></MainLayout>} />

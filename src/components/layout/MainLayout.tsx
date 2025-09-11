@@ -4,15 +4,25 @@ import { Navigate, useLocation } from "react-router-dom";
 import { AppSidebar } from "./AppSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Menu, Search, Bell, User } from "lucide-react";
+import { Menu, Search, Bell, User, LogOut, Settings } from "lucide-react";
 import { Loader2 } from "lucide-react";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface MainLayoutProps {
   children: ReactNode;
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
+  const { profile, getDisplayName, getInitials, getRoleDisplayName } = useUserProfile();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
 
@@ -86,9 +96,65 @@ export function MainLayout({ children }: MainLayoutProps) {
                 </span>
               </Button>
               
-              <Button variant="ghost" size="sm">
-                <User className="h-5 w-5 text-gray-600" />
-              </Button>
+              {/* User Menu */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="flex items-center gap-2 h-10 px-3">
+                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                      {profile?.avatar_url ? (
+                        <img 
+                          src={profile.avatar_url} 
+                          alt={getDisplayName()} 
+                          className="w-full h-full rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-xs font-bold text-primary-foreground">
+                          {getInitials()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="hidden md:block text-left">
+                      <p className="text-sm font-medium text-gray-900">
+                        {getDisplayName()}
+                      </p>
+                      {profile?.currentRole && (
+                        <p className="text-xs text-gray-500">
+                          {getRoleDisplayName(profile.currentRole)}
+                        </p>
+                      )}
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium">{getDisplayName()}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {profile?.email}
+                      </p>
+                      {profile?.currentRole && (
+                        <p className="text-xs text-primary font-medium">
+                          {getRoleDisplayName(profile.currentRole)}
+                        </p>
+                      )}
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Perfil</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Configuración</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut} className="text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Cerrar Sesión</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </header>

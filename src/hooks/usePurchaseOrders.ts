@@ -147,6 +147,63 @@ export function usePurchaseOrders() {
     }
   };
 
+  const receiveOrderItem = async (itemId: string, receivedQuantity: number): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const { error } = await supabase.rpc('receive_purchase_order_item', {
+        p_purchase_order_item_id: itemId,
+        p_received_quantity: receivedQuantity
+      });
+
+      if (error) {
+        console.error('Error receiving purchase order item:', error);
+        return { success: false, error: error.message };
+      }
+
+      await fetchOrders();
+      return { success: true };
+    } catch (err) {
+      console.error('Error in receiveOrderItem:', err);
+      return { success: false, error: 'Error al recibir el producto de la orden de compra' };
+    }
+  };
+
+  const markOrderAsReceived = async (orderId: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      // First, get all items for this order
+      const { data: items, error: itemsError } = await supabase
+        .from('purchase_order_items')
+        .select('id, quantity, received_quantity')
+        .eq('purchase_order_id', orderId);
+
+      if (itemsError) {
+        console.error('Error fetching purchase order items:', itemsError);
+        return { success: false, error: itemsError.message };
+      }
+
+      // Receive all items with their full quantity
+      for (const item of items || []) {
+        const quantityToReceive = item.quantity - (item.received_quantity || 0);
+        if (quantityToReceive > 0) {
+          const result = await receiveOrderItem(item.id, quantityToReceive);
+          if (!result.success) {
+            return result;
+          }
+        }
+      }
+
+      // Update order status to received
+      const result = await updateOrder(orderId, { 
+        status: 'received',
+        received_date: new Date().toISOString().split('T')[0]
+      });
+
+      return result;
+    } catch (err) {
+      console.error('Error in markOrderAsReceived:', err);
+      return { success: false, error: 'Error al marcar la orden como recibida' };
+    }
+  };
+
   const deleteOrder = async (id: string): Promise<{ success: boolean; error?: string }> => {
     try {
       const { error: deleteError } = await supabase
@@ -178,6 +235,8 @@ export function usePurchaseOrders() {
     createOrder,
     updateOrder,
     deleteOrder,
+    receiveOrderItem,
+    markOrderAsReceived,
     refetch: fetchOrders,
   };
 }

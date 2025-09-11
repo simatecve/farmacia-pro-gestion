@@ -1,10 +1,6 @@
 import React from 'react';
-import { UserManagementNew } from '@/components/users/UserManagementNew';
+import { UsersPage } from './UsersPage';
 
 export default function Usuarios() {
-  return (
-    <div className="container mx-auto py-6">
-      <UserManagementNew />
-    </div>
-  );
+  return <UsersPage />;
 }

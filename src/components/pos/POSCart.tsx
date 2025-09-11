@@ -48,83 +48,61 @@ export function POSCart({
           ) : (
             items.map((item, index) => (
               <div key={index} className="border rounded-lg p-4 bg-white shadow-sm border-gray-200">
-                {/* Header con nombre del producto y botón eliminar */}
-                <div className="flex items-start justify-between mb-3">
+                {/* Header con nombre del producto */}
+                <div className="mb-3">
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-base truncate text-gray-900">{item.product_name}</h4>
                     <p className="text-sm text-gray-600 mt-1">
                       ${item.unit_price.toFixed(2)} por unidad
                     </p>
                   </div>
+                </div>
+                
+                {/* Control de cantidad y botón eliminar */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onUpdateQuantity(index, Math.max(1, item.quantity - 1))}
+                      className="h-9 w-9 p-0 hover:bg-red-50 hover:border-red-300 transition-colors border-gray-300"
+                      disabled={item.quantity <= 1}
+                      title="Disminuir cantidad"
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <Input
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) => {
+                        const newQuantity = Math.max(1, parseInt(e.target.value) || 1);
+                        onUpdateQuantity(index, newQuantity);
+                      }}
+                      className="h-9 w-16 text-center text-sm font-medium border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      min="1"
+                      title="Editar cantidad directamente"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onUpdateQuantity(index, item.quantity + 1)}
+                      className="h-9 w-9 p-0 hover:bg-green-50 hover:border-green-300 transition-colors border-gray-300"
+                      title="Aumentar cantidad"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm text-gray-600 ml-2">unidades</span>
+                  </div>
+                  
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => onRemoveItem(index)}
-                    className="text-red-600 hover:text-white hover:bg-red-600 border-red-300 hover:border-red-600 h-9 w-9 p-0 transition-all duration-200 ml-2"
+                    className="text-red-600 hover:text-white hover:bg-red-600 border-red-300 hover:border-red-600 h-9 w-9 p-0 transition-all duration-200"
                     title="Eliminar producto del carrito"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
-                </div>
-                
-                {/* Controles de cantidad y descuento */}
-                <div className="space-y-3">
-                  {/* Control de cantidad */}
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-2 block">Cantidad</Label>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onUpdateQuantity(index, Math.max(1, item.quantity - 1))}
-                        className="h-9 w-9 p-0 hover:bg-red-50 hover:border-red-300 transition-colors border-gray-300"
-                        disabled={item.quantity <= 1}
-                        title="Disminuir cantidad"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                      <Input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => {
-                          const newQuantity = Math.max(1, parseInt(e.target.value) || 1);
-                          onUpdateQuantity(index, newQuantity);
-                        }}
-                        className="h-9 w-16 text-center text-sm font-medium border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        min="1"
-                        title="Editar cantidad directamente"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onUpdateQuantity(index, item.quantity + 1)}
-                        className="h-9 w-9 p-0 hover:bg-green-50 hover:border-green-300 transition-colors border-gray-300"
-                        title="Aumentar cantidad"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                      <span className="text-sm text-gray-600 ml-2">unidades</span>
-                    </div>
-                  </div>
-                  
-                  {/* Control de descuento */}
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-2 block">Descuento</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">$</span>
-                      <Input
-                        type="number"
-                        value={item.discount_amount}
-                        onChange={(e) => onUpdateDiscount(index, parseFloat(e.target.value) || 0)}
-                        className="h-9 w-24 text-sm border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                        title="Aplicar descuento en pesos"
-                      />
-                      <span className="text-sm text-gray-600">pesos</span>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Subtotal del item */}

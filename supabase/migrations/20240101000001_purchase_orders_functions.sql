@@ -50,7 +50,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function to update product stock when receiving purchase order
+-- Function to update inventory stock when receiving purchase order
 CREATE OR REPLACE FUNCTION receive_purchase_order_item(
     p_purchase_order_item_id UUID,
     p_received_quantity INTEGER
@@ -58,10 +58,14 @@ CREATE OR REPLACE FUNCTION receive_purchase_order_item(
 RETURNS VOID AS $$
 DECLARE
     v_product_id UUID;
-    v_current_stock INTEGER;
+    v_unit_price DECIMAL(10,2);
+    v_inventory_record RECORD;
+    v_stock_before INTEGER;
+    v_stock_after INTEGER;
+    v_location_id UUID := '556a9540-618b-453c-a688-8a157c43dcc7'::uuid; -- Default Bodega location
 BEGIN
-    -- Get product ID from purchase order item
-    SELECT product_id INTO v_product_id
+    -- Get product ID and unit price from purchase order item
+    SELECT product_id, unit_price INTO v_product_id, v_unit_price
     FROM purchase_order_items
     WHERE id = p_purchase_order_item_id;
     
@@ -72,25 +76,61 @@ BEGIN
         updated_at = NOW()
     WHERE id = p_purchase_order_item_id;
     
-    -- Update product stock
-    UPDATE products
-    SET 
-        stock = stock + p_received_quantity,
-        updated_at = NOW()
-    WHERE id = v_product_id;
+    -- Get current inventory record
+    SELECT * INTO v_inventory_record
+    FROM inventory
+    WHERE product_id = v_product_id AND location_id = v_location_id
+    LIMIT 1;
+    
+    -- If inventory record exists, update it; otherwise create new one
+    IF FOUND THEN
+        v_stock_before := v_inventory_record.current_stock;
+        v_stock_after := v_stock_before + p_received_quantity;
+        
+        UPDATE inventory
+        SET 
+            current_stock = v_stock_after,
+            updated_at = NOW()
+        WHERE id = v_inventory_record.id;
+    ELSE
+        v_stock_before := 0;
+        v_stock_after := p_received_quantity;
+        
+        INSERT INTO inventory (
+            product_id,
+            location_id,
+            current_stock,
+            reserved_stock
+        ) VALUES (
+            v_product_id,
+            v_location_id,
+            v_stock_after,
+            0
+        );
+    END IF;
     
     -- Create inventory movement record
     INSERT INTO inventory_movements (
         product_id,
+        location_id,
         movement_type,
         quantity,
+        unit_cost,
+        total_cost,
+        stock_before,
+        stock_after,
         reference_type,
         reference_id,
         notes
     ) VALUES (
         v_product_id,
+        v_location_id,
         'entrada',
         p_received_quantity,
+        v_unit_price,
+        v_unit_price * p_received_quantity,
+        v_stock_before,
+        v_stock_after,
         'purchase_order',
         p_purchase_order_item_id,
         'Recepción de orden de compra'

@@ -168,6 +168,56 @@ export const useSales = () => {
 
       if (itemsError) throw itemsError;
 
+      // Update inventory and create movements for each item
+      for (const item of items) {
+        try {
+          // Get current inventory for the product (using first available location)
+          const { data: inventoryData } = await supabase
+            .from('inventory')
+            .select('*')
+            .eq('product_id', item.product_id)
+            .order('current_stock', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (inventoryData) {
+            const stockBefore = inventoryData.current_stock;
+            const stockAfter = stockBefore - item.quantity;
+
+            if (stockAfter < 0) {
+              console.warn(`Stock insuficiente para producto ${item.product_id}. Stock actual: ${stockBefore}, cantidad solicitada: ${item.quantity}`);
+              // Continuar con la venta pero registrar stock negativo
+            }
+
+            // Update inventory stock
+            await supabase
+              .from('inventory')
+              .update({ current_stock: stockAfter })
+              .eq('id', inventoryData.id);
+
+            // Create inventory movement
+            await supabase
+              .from('inventory_movements')
+              .insert({
+                product_id: item.product_id,
+                location_id: inventoryData.location_id,
+                movement_type: 'venta',
+                quantity: -item.quantity, // Negative for sales
+                unit_cost: item.unit_price,
+                total_cost: item.total_price,
+                stock_before: stockBefore,
+                stock_after: stockAfter,
+                reference_type: 'sale',
+                reference_id: sale.id,
+                notes: `Venta ${saleData.sale_number}`
+              });
+          }
+        } catch (inventoryError) {
+          console.error(`Error updating inventory for product ${item.product_id}:`, inventoryError);
+          // Don't fail the entire sale if inventory update fails
+        }
+      }
+
       // Create payment record if payment method is provided
       if (saleData.payment_method) {
         const { error: paymentError } = await supabase

@@ -40,41 +40,32 @@ export function ReceiptModal({ isOpen, onClose, sale, client }: ReceiptModalProp
   const generateReceiptText = () => {
     const receiptText = `
 ${companySettings?.name || 'Daalef Farmacia'}
-${companySettings?.legal_name && companySettings.legal_name !== companySettings.name ? companySettings.legal_name + '\n' : ''}${companySettings?.address || 'Av. Principal 123, Centro Comercial Plaza, Local 45'}
-${companySettings?.phone ? `Tel: ${companySettings.phone}` : 'Tel: 2 123-4567'}
-${companySettings?.email ? `Email: ${companySettings.email}` : ''}
-${companySettings?.website ? companySettings.website : ''}
-${companySettings?.tax_id ? `RFC: ${companySettings.tax_id}` : 'RFC: 123456789001'}
+${companySettings?.address || 'Av. Principal 123, Centro Comercial Plaza, Local 45'}
+${companySettings?.phone ? `Tel: ${companySettings.phone}` : 'Tel: +593 2 123-4567'}
+${companySettings?.tax_id ? `RUC: ${companySettings.tax_id}` : 'RUC: 1234567890001'}
 Lic. Sanitaria: MSP-2024-001234
 
-${'='.repeat(40)}
 FACTURA: ${sale.sale_number}
 FECHA: ${format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: es })}
 CAJERO: Sistema
 CLIENTE: ${client?.name || 'CONSUMIDOR FINAL'}
-${'='.repeat(40)}
 
-PRODUCTO${' '.repeat(20)}CANT  PRECIO  TOTAL
-${'-'.repeat(40)}
+PRODUCTO${' '.repeat(15)}CANT${' '.repeat(5)}PRECIO${' '.repeat(3)}TOTAL
 ${sale.items?.map(item => 
-  `${item.product_name.substring(0, 20).padEnd(20)} ${item.quantity.toString().padStart(4)} ${item.unit_price.toFixed(2).padStart(7)} ${item.total_price.toFixed(2).padStart(7)}`
+  `${item.product_name}\n${item.quantity}\n$${item.unit_price.toFixed(2)}\n$${item.total_price.toFixed(2)}`
 ).join('\n') || ''}
 
-${'-'.repeat(40)}
-SUBTOTAL:${' '.repeat(25)}${(sale.total_amount - sale.tax_amount).toFixed(2).padStart(8)}
-${sale.discount_amount > 0 ? `DESCUENTOS:${' '.repeat(23)}-${sale.discount_amount.toFixed(2).padStart(7)}\n` : ''}${taxName} (${(taxRate * 100).toFixed(0)}%):${' '.repeat(20)}${sale.tax_amount.toFixed(2).padStart(8)}
-TOTAL:${' '.repeat(28)}${sale.total_amount.toFixed(2).padStart(8)}
+SUBTOTAL:$${(sale.total_amount - sale.tax_amount).toFixed(2)}
+${taxName} (${(taxRate * 100).toFixed(0)}%):$${sale.tax_amount.toFixed(2)}
+TOTAL:$${sale.total_amount.toFixed(2)}
 
 MÉTODO DE PAGO: ${getPaymentMethodLabel(sale.payment_method || '')}
 
-${'-'.repeat(40)}
-${printSettings?.footer_text || 'Gracias por confiar en nosotros para su salud y bienestar'}
+Gracias por confiar en nosotros para su salud y bienestar
 ¡Gracias por su compra!
 Conserve este recibo
-Horarios de atención: Lun-Sáb 8:00-20:00, Dom 9:00-18:00
-Para consultas: ${companySettings?.phone || 'Tel: 2 123-4567'}
 
-Sistema: ${companySettings?.name || 'Daalef Farmacia'}
+Sistema: Daalef Farmacia
 Inteligencia de Negocio
     `;
     return receiptText;
@@ -119,24 +110,9 @@ Inteligencia de Negocio
               {/* Header */}
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold">{companySettings?.name || 'Daalef Farmacia'}</h2>
-                {companySettings?.legal_name && companySettings.legal_name !== companySettings.name && (
-                  <p className="text-sm text-muted-foreground font-medium">{companySettings.legal_name}</p>
-                )}
-                {companySettings?.address && (
-                  <p className="text-sm text-muted-foreground">{companySettings.address}</p>
-                )}
-                {companySettings?.phone && (
-                  <p className="text-sm text-muted-foreground">Tel: {companySettings.phone}</p>
-                )}
-                {companySettings?.email && (
-                  <p className="text-sm text-muted-foreground">Email: {companySettings.email}</p>
-                )}
-                {companySettings?.website && (
-                  <p className="text-sm text-muted-foreground">{companySettings.website}</p>
-                )}
-                {companySettings?.tax_id && (
-                  <p className="text-sm text-muted-foreground">RFC: {companySettings.tax_id}</p>
-                )}
+                <p className="text-sm text-muted-foreground">{companySettings?.address || 'Av. Principal 123, Centro Comercial Plaza, Local 45'}</p>
+                <p className="text-sm text-muted-foreground">{companySettings?.phone ? `Tel: ${companySettings.phone}` : 'Tel: +593 2 123-4567'}</p>
+                <p className="text-sm text-muted-foreground">{companySettings?.tax_id ? `RUC: ${companySettings.tax_id}` : 'RUC: 1234567890001'}</p>
                 <p className="text-xs text-muted-foreground mt-2">Lic. Sanitaria: MSP-2024-001234</p>
               </div>
 
@@ -166,19 +142,22 @@ Inteligencia de Negocio
 
             {/* Products */}
             <div className="space-y-2 mb-4">
-              <div className="grid grid-cols-12 gap-2 text-xs font-medium">
-                <div className="col-span-6">PRODUCTO</div>
-                <div className="col-span-2 text-center">CANT</div>
-                <div className="col-span-2 text-right">PRECIO</div>
-                <div className="col-span-2 text-right">TOTAL</div>
+              <div className="grid grid-cols-4 gap-2 text-xs font-medium">
+                <div className="col-span-1">PRODUCTO</div>
+                <div className="col-span-1 text-center">CANT</div>
+                <div className="col-span-1 text-right">PRECIO</div>
+                <div className="col-span-1 text-right">TOTAL</div>
               </div>
               <Separator />
               {sale.items?.map((item, index) => (
-                <div key={index} className="grid grid-cols-12 gap-2 text-sm">
-                  <div className="col-span-6 text-xs">{item.product_name}</div>
-                  <div className="col-span-2 text-center">{item.quantity}</div>
-                  <div className="col-span-2 text-right">${item.unit_price.toFixed(2)}</div>
-                  <div className="col-span-2 text-right">${item.total_price.toFixed(2)}</div>
+                <div key={index} className="space-y-1">
+                  <div className="text-sm font-medium">{item.product_name}</div>
+                  <div className="grid grid-cols-4 gap-2 text-sm">
+                    <div className="col-span-1"></div>
+                    <div className="col-span-1 text-center">{item.quantity}</div>
+                    <div className="col-span-1 text-right">${item.unit_price.toFixed(2)}</div>
+                    <div className="col-span-1 text-right">${item.total_price.toFixed(2)}</div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -222,13 +201,11 @@ Inteligencia de Negocio
 
             {/* Footer */}
             <div className="text-center text-xs text-muted-foreground space-y-1">
-              <p>{printSettings?.footer_text || 'Gracias por confiar en nosotros para su salud y bienestar'}</p>
+              <p>Gracias por confiar en nosotros para su salud y bienestar</p>
               <p className="font-medium">¡Gracias por su compra!</p>
               <p>Conserve este recibo</p>
-              <p className="mt-2">Horarios de atención: Lun-Sáb 8:00-20:00, Dom 9:00-18:00</p>
-              <p>Para consultas: {companySettings?.phone || 'Tel: 2 123-4567'}</p>
               <div className="mt-4 pt-2 border-t">
-                <p>Sistema: {companySettings?.name || 'Daalef Farmacia'}</p>
+                <p>Sistema: Daalef Farmacia</p>
                 <p>Inteligencia de Negocio</p>
               </div>
             </div>

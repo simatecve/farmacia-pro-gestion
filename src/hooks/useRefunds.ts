@@ -172,7 +172,7 @@ export function useRefunds() {
             .insert({
               product_id: item.product_id,
               location_id: locations[0].id,
-              movement_type: 'refund',
+              movement_type: 'devolucion',
               quantity: item.quantity,
               unit_cost: item.unit_price,
               total_cost: item.total_price,

@@ -23,13 +23,15 @@ import {
   History,
   Activity,
   RotateCcw,
-  Webhook
+  Webhook,
+  FileText
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useRolePermissions } from "@/components/auth/RoleProtection";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 // PANEL PRINCIPAL
 const dashboardItems = [
@@ -51,6 +53,7 @@ const inventoryItems = [
   { title: "Categorías", url: "/categorias", icon: Tag },
   { title: "Ubicaciones", url: "/ubicaciones", icon: MapPin },
   { title: "Inventario", url: "/inventario", icon: Package2 },
+  { title: "Kardex", url: "/kardex", icon: FileText },
   { title: "Compras", url: "/compras", icon: Package },
 ];
 
@@ -81,6 +84,7 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
   const location = useLocation();
   const { signOut } = useAuth();
   const permissions = useRolePermissions();
+  const { profile, getDisplayName, getInitials, getRoleDisplayName } = useUserProfile();
   const currentPath = location.pathname;
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -398,11 +402,30 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
         <div className="p-4 border-t border-border flex-shrink-0">
           <div className={cn("flex items-center gap-3 p-3 rounded-lg bg-accent mb-3 transition-all duration-200", isCollapsed && "justify-center")}>
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-bold text-primary-foreground">A</span>
+              {profile?.avatar_url ? (
+                <img 
+                  src={profile.avatar_url} 
+                  alt={getDisplayName()} 
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <span className="text-xs font-bold text-primary-foreground">
+                  {getInitials()}
+                </span>
+              )}
             </div>
             <div className={cn("flex-1 min-w-0 transition-opacity duration-200", isCollapsed && "opacity-0")}>
-              <p className="text-sm font-medium text-foreground truncate">Admin Usuario</p>
-              <p className="text-xs text-muted-foreground truncate">admin@daalef.com</p>
+              <p className="text-sm font-medium text-foreground truncate">
+                {getDisplayName()}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {profile?.email || 'Cargando...'}
+              </p>
+              {profile?.currentRole && (
+                <p className="text-xs text-primary font-medium truncate">
+                  {getRoleDisplayName(profile.currentRole)}
+                </p>
+              )}
             </div>
           </div>
           
