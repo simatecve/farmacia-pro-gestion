@@ -32,7 +32,7 @@ export function PurchaseOrderForm({ purchaseOrder, onSuccess }: PurchaseOrderFor
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<OrderItem[]>([]);
   
-  const { createPurchaseOrder, updatePurchaseOrder } = usePurchaseOrders();
+  const { orders, loading, error, createOrder, updateOrder } = usePurchaseOrders();
   const { suppliers } = useSuppliers();
   const { products } = useProducts();
 
@@ -137,10 +137,7 @@ export function PurchaseOrderForm({ purchaseOrder, onSuccess }: PurchaseOrderFor
           })));
 
       if (result.success) {
-        toast.success({
-          title: "¡Éxito!",
-          description: purchaseOrder ? "Orden de compra actualizada correctamente" : "Orden de compra creada correctamente"
-        });
+        toast.success(purchaseOrder ? "Orden de compra actualizada correctamente" : "Orden de compra creada correctamente");
         
         setOpen(false);
         onSuccess?.();

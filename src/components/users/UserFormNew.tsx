@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useUserRoles, type AppRole, type UserProfile } from '@/hooks/useUserRoles';
-import { useUserInvite } from '@/hooks/useUserInvite';
 import { useToast } from '@/hooks/use-toast';
 
 interface UserFormNewProps {
@@ -31,7 +30,6 @@ const roleDescriptions: Record<AppRole, string> = {
 
 export function UserFormNew({ user, onClose, onSuccess }: UserFormNewProps) {
   const { updateProfile, assignRole, removeRole, canManageRole } = useUserRoles();
-  const { createUser } = useUserInvite();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   
@@ -96,25 +94,10 @@ export function UserFormNew({ user, onClose, onSuccess }: UserFormNewProps) {
           description: "Los cambios se han guardado correctamente",
         });
       } else {
-        // Create new user
-        const result = await createUser(
-          formData.email, 
-          formData.full_name, 
-          Array.from(selectedRoles)
-        );
-        
-        if (!result.success) {
-          toast({
-            title: "Error",
-            description: result.error || "Error al crear usuario",
-            variant: "destructive",
-          });
-          return;
-        }
-
         toast({
-          title: "Éxito",
-          description: result.message || "Usuario creado correctamente",
+          title: "Información",
+          description: "La creación de usuarios requiere configuración adicional de la base de datos.",
+          variant: "destructive",
         });
       }
 

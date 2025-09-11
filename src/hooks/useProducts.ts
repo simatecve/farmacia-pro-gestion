@@ -24,14 +24,6 @@ export interface Product {
   location_id: string | null;
   created_at: string;
   updated_at: string;
-  category?: {
-    id: string;
-    name: string;
-  };
-  location?: {
-    id: string;
-    name: string;
-  };
 }
 
 export function useProducts() {
@@ -44,17 +36,13 @@ export function useProducts() {
       setLoading(true);
       const { data, error } = await supabase
         .from('products')
-        .select(`
-          *,
-          category:categories(id, name),
-          location:locations(id, name)
-        `)
+        .select('*')
         .order('name');
       
       if (error) throw error;
       
-      // Transform data to match Product interface with proper type conversion
-      const transformedData: Product[] = (data || []).map(item => ({
+      // Map the data to ensure location_id exists (even if null)
+      const mappedData: Product[] = (data || []).map(item => ({
         id: item.id,
         name: item.name,
         description: item.description,
@@ -77,11 +65,9 @@ export function useProducts() {
         location_id: item.location_id || null,
         created_at: item.created_at,
         updated_at: item.updated_at,
-        category: Array.isArray(item.category) ? item.category[0] : item.category,
-        location: Array.isArray(item.location) ? item.location[0] : item.location
       }));
       
-      setProducts(transformedData);
+      setProducts(mappedData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error cargando productos');
     } finally {
@@ -89,22 +75,17 @@ export function useProducts() {
     }
   };
 
-  const createProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'updated_at' | 'category' | 'location'>) => {
+  const createProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>) => {
     try {
       const { data, error } = await supabase
         .from('products')
         .insert([productData])
-        .select(`
-          *,
-          category:categories(id, name),
-          location:locations(id, name)
-        `)
+        .select()
         .single();
       
       if (error) throw error;
       
-      // Transform data to match Product interface
-      const transformedData: Product = {
+      const mappedData: Product = {
         id: data.id,
         name: data.name,
         description: data.description,
@@ -127,45 +108,27 @@ export function useProducts() {
         location_id: data.location_id || null,
         created_at: data.created_at,
         updated_at: data.updated_at,
-        category: Array.isArray(data.category) ? data.category[0] : data.category,
-        location: Array.isArray(data.location) ? data.location[0] : data.location
       };
       
-      setProducts(prev => [...prev, transformedData]);
-      return transformedData;
+      setProducts(prev => [...prev, mappedData]);
+      return mappedData;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Error creando producto');
     }
   };
 
-  const updateProduct = async (id: string, productData: Partial<Omit<Product, 'id' | 'created_at' | 'updated_at' | 'category' | 'location'>>) => {
+  const updateProduct = async (id: string, productData: Partial<Omit<Product, 'id' | 'created_at' | 'updated_at'>>) => {
     try {
-      // Verificar autenticación
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('Usuario no autenticado');
-      }
-
-      console.log('Updating product:', id, productData);
-      
       const { data, error } = await supabase
         .from('products')
         .update(productData)
         .eq('id', id)
-        .select(`
-          *,
-          category:categories(id, name),
-          location:locations(id, name)
-        `)
+        .select()
         .single();
       
-      if (error) {
-        console.error('Supabase error updating product:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      // Transform data to match Product interface
-      const transformedData: Product = {
+      const mappedData: Product = {
         id: data.id,
         name: data.name,
         description: data.description,
@@ -188,16 +151,12 @@ export function useProducts() {
         location_id: data.location_id || null,
         created_at: data.created_at,
         updated_at: data.updated_at,
-        category: Array.isArray(data.category) ? data.category[0] : data.category,
-        location: Array.isArray(data.location) ? data.location[0] : data.location
       };
       
-      setProducts(prev => prev.map(prod => prod.id === id ? transformedData : prod));
-      return transformedData;
+      setProducts(prev => prev.map(prod => prod.id === id ? mappedData : prod));
+      return mappedData;
     } catch (err) {
-      console.error('Error in updateProduct:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Error actualizando producto';
-      throw new Error(errorMessage);
+      throw new Error(err instanceof Error ? err.message : 'Error actualizando producto');
     }
   };
 
