@@ -8,9 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CalendarDays, DollarSign, TrendingUp, TrendingDown, Calculator, Printer } from "lucide-react";
 import { useCashRegister, CashRegisterSession } from "@/hooks/useCashRegister";
-import { format, isToday, startOfDay, endOfDay } from "date-fns";
+import { startOfDay, endOfDay, format, isToday } from "date-fns";
 import { es } from "date-fns/locale";
-
 interface DailyBalanceData {
   date: string;
   totalSessions: number;
@@ -68,6 +67,8 @@ export function DailyBalance() {
     const balance = calculateDailyBalance(selectedDate);
     setBalanceData(balance);
   }, [selectedDate, sessions]);
+
+
 
   const handlePrintBalance = () => {
     if (!balanceData) return;

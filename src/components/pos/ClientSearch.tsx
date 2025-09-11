@@ -72,13 +72,7 @@ export function ClientSearch({
       const { data: clients, error } = await supabase
         .from('clients')
         .select('*')
-        .or(`
-          name.ilike.%${term}%,
-          email.ilike.%${term}%,
-          phone.ilike.%${term}%,
-          identification_number.ilike.%${term}%,
-          address.ilike.%${term}%
-        `)
+        .or(`name.ilike.%${term}%,email.ilike.%${term}%,phone.ilike.%${term}%,identification_number.ilike.%${term}%,address.ilike.%${term}%`)
         .limit(maxResults);
 
       if (error) {
