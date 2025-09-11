@@ -6,6 +6,7 @@ import { ReceiptModal } from "@/components/pos/ReceiptModal";
 import { useSales, SaleItem, Sale } from "@/hooks/useSales";
 import { useClients } from "@/hooks/useClients";
 import { useCashRegister } from "@/hooks/useCashRegister";
+import { useSettings } from "@/hooks/useSettings";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ export default function PointOfSale() {
   const { createSale, generateSaleNumber } = useSales();
   const { clients } = useClients();
   const { currentSession, updateSessionSales } = useCashRegister();
+  const { taxSettings } = useSettings();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -93,13 +95,18 @@ export default function PointOfSale() {
     const itemDiscounts = cartItems.reduce((sum, item) => sum + item.discount_amount, 0);
     const totalDiscount = itemDiscounts + generalDiscount;
     const taxableAmount = subtotal - totalDiscount;
-    const tax = taxableAmount * 0.16; // 16% IVA
+    
+    // Get default tax rate from system configuration
+    const defaultTax = taxSettings.find(tax => tax.is_default) || taxSettings[0];
+    const taxRate = defaultTax ? defaultTax.rate : 0.16; // Fallback to 16% if no tax configured
+    
+    const tax = taxableAmount * taxRate;
     const total = taxableAmount + tax;
 
-    return { subtotal, discount: totalDiscount, tax, total };
+    return { subtotal, discount: totalDiscount, tax, total, taxRate, taxName: defaultTax?.name || 'IVA' };
   };
 
-  const { subtotal, discount, tax, total } = calculateTotals();
+  const { subtotal, discount, tax, total, taxRate, taxName } = calculateTotals();
 
   const processSale = async (saleData: {
     client_id?: string;
@@ -227,6 +234,8 @@ export default function PointOfSale() {
                 discount={discount}
                 tax={tax}
                 total={total}
+                taxRate={taxRate}
+                taxName={taxName}
               />
             </div>
             
@@ -274,7 +283,7 @@ export default function PointOfSale() {
 
             <div className="flex items-center gap-3">
               <Badge variant="secondary" className="text-sm px-3 py-1">
-                IVA: ${tax.toFixed(2)}
+                {taxName}: ${tax.toFixed(2)}
               </Badge>
             </div>
           </div>

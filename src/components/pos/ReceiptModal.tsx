@@ -197,7 +197,7 @@ Cambio:                         0.00
                 <span>0.00</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>{taxName} 15%:</span>
+                <span>{taxName} {(taxRate * 100).toFixed(0)}%:</span>
                 <span>{sale.tax_amount.toFixed(2)}</span>
               </div>
               {sale.discount_amount > 0 && (

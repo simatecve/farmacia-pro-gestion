@@ -17,19 +17,11 @@ interface POSCartProps {
   discount: number;
   tax: number;
   total: number;
+  taxRate?: number;
+  taxName?: string;
 }
 
-export function POSCart({
-  items,
-  onUpdateQuantity,
-  onUpdateDiscount,
-  onRemoveItem,
-  onClearCart,
-  subtotal,
-  discount,
-  tax,
-  total
-}: POSCartProps) {
+export function POSCart({ items, onUpdateQuantity, onUpdateDiscount, onRemoveItem, onClearCart, subtotal, discount, tax, total, taxRate = 0.16, taxName = 'IVA' }: POSCartProps) {
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-2 flex-shrink-0">
@@ -130,7 +122,7 @@ export function POSCart({
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span>IVA (16%):</span>
+                <span>{taxName} ({(taxRate * 100).toFixed(0)}%):</span>
                 <span className="font-medium">${tax.toFixed(2)}</span>
               </div>
               <Separator />
