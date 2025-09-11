@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,9 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, DollarSign, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Search, DollarSign, Clock, CheckCircle, XCircle, Calculator } from "lucide-react";
 import { useCashRegister } from "@/hooks/useCashRegister";
 import { useToast } from "@/hooks/use-toast";
+import { DailyBalance } from "@/components/cash/DailyBalance";
 
 export default function CashRegister() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -241,84 +243,100 @@ export default function CashRegister() {
         </Card>
       )}
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Historial de Sesiones</CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar sesiones..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Caja</TableHead>
-                <TableHead>Apertura</TableHead>
-                <TableHead>Ventas</TableHead>
-                <TableHead>Cierre</TableHead>
-                <TableHead>Diferencia</TableHead>
-                <TableHead>Estado</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredSessions.map((session) => {
-                const difference = session.closing_amount 
-                  ? session.closing_amount - (session.opening_amount + session.total_cash)
-                  : null;
-                
-                return (
-                  <TableRow key={session.id}>
-                    <TableCell>
-                      <div>
-                        <div>{new Date(session.opened_at).toLocaleDateString()}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {new Date(session.opened_at).toLocaleTimeString()}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">{session.register_name}</TableCell>
-                    <TableCell>${session.opening_amount.toFixed(2)}</TableCell>
-                    <TableCell>${session.total_sales.toFixed(2)}</TableCell>
-                    <TableCell>
-                      {session.closing_amount ? `$${session.closing_amount.toFixed(2)}` : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {difference !== null ? (
-                        <span className={difference >= 0 ? 'text-success' : 'text-destructive'}>
-                          ${difference.toFixed(2)}
-                        </span>
-                      ) : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={session.status === 'open' ? 'default' : 'secondary'}>
-                        {session.status === 'open' ? 'Abierta' : 'Cerrada'}
-                      </Badge>
-                    </TableCell>
+      <Tabs defaultValue="sessions" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="sessions">Sesiones</TabsTrigger>
+          <TabsTrigger value="balance" className="gap-2">
+            <Calculator className="w-4 h-4" />
+            Balance Diario
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="sessions" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Historial de Sesiones</CardTitle>
+                <div className="relative w-64">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar sesiones..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Caja</TableHead>
+                    <TableHead>Apertura</TableHead>
+                    <TableHead>Ventas</TableHead>
+                    <TableHead>Cierre</TableHead>
+                    <TableHead>Diferencia</TableHead>
+                    <TableHead>Estado</TableHead>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-          
-          {filteredSessions.length === 0 && (
-            <div className="text-center py-8">
-              <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">
-                {searchTerm ? 'No se encontraron sesiones con ese criterio de búsqueda.' : 'No hay sesiones registradas.'}
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {filteredSessions.map((session) => {
+                    const difference = session.closing_amount 
+                      ? session.closing_amount - (session.opening_amount + session.total_cash)
+                      : null;
+                    
+                    return (
+                      <TableRow key={session.id}>
+                        <TableCell>
+                          <div>
+                            <div>{new Date(session.opened_at).toLocaleDateString()}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {new Date(session.opened_at).toLocaleTimeString()}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium">{session.register_name}</TableCell>
+                        <TableCell>${session.opening_amount.toFixed(2)}</TableCell>
+                        <TableCell>${session.total_sales.toFixed(2)}</TableCell>
+                        <TableCell>
+                          {session.closing_amount ? `$${session.closing_amount.toFixed(2)}` : '-'}
+                        </TableCell>
+                        <TableCell>
+                          {difference !== null ? (
+                            <span className={difference >= 0 ? 'text-success' : 'text-destructive'}>
+                              ${difference.toFixed(2)}
+                            </span>
+                          ) : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={session.status === 'open' ? 'default' : 'secondary'}>
+                            {session.status === 'open' ? 'Abierta' : 'Cerrada'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              
+              {filteredSessions.length === 0 && (
+                <div className="text-center py-8">
+                  <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">
+                    {searchTerm ? 'No se encontraron sesiones con ese criterio de búsqueda.' : 'No hay sesiones registradas.'}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="balance">
+          <DailyBalance />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

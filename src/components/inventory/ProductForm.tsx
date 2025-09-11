@@ -167,6 +167,11 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     setSaving(true);
 
     try {
+      // Validación básica - solo el nombre es requerido
+      if (!formData.name.trim()) {
+        throw new Error('El nombre del producto es requerido');
+      }
+
       console.log('Starting form submission with data:', formData);
       
       let imageUrl = imagePreview;
@@ -182,10 +187,26 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
         console.log('Image uploaded successfully:', imageUrl);
       }
 
+      // Preparar datos del producto, convirtiendo campos vacíos a null
       const productData = {
-         ...formData,
-         location_id: formData.location_id === 'none' ? null : formData.location_id,
+         name: formData.name.trim(),
+         description: formData.description.trim() || null,
+         sku: formData.sku.trim() || null,
+         barcode: formData.barcode.trim() || null,
+         code: formData.code.trim() || null,
          category_id: formData.category_id === 'none' ? null : formData.category_id,
+         unit_type: formData.unit_type || 'unidad',
+         presentation: formData.presentation.trim() || null,
+         concentration: formData.concentration.trim() || null,
+         laboratory: formData.laboratory.trim() || null,
+         location_id: formData.location_id === 'none' ? null : formData.location_id,
+         expiry_date: formData.expiry_date || null,
+         sale_price: formData.sale_price || 0,
+         purchase_price: formData.purchase_price || 0,
+         min_stock: formData.min_stock || 0,
+         max_stock: formData.max_stock || 0,
+         requires_prescription: formData.requires_prescription || false,
+         active: formData.active ?? true,
          image_url: imageUrl
        };
 

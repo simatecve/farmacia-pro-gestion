@@ -11,6 +11,10 @@ export interface ProductWithStock {
   unit_type: string;
   requires_prescription: boolean;
   active: boolean;
+  category?: {
+    id: string;
+    name: string;
+  };
   locations?: Array<{
     location_name: string;
     stock: number;
@@ -27,10 +31,16 @@ export function useProductsWithStock() {
       setLoading(true);
       setError(null);
       
-      // First, get all active products
+      // First, get all active products with category information
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          categories (
+            id,
+            name
+          )
+        `)
         .eq('active', true)
         .order('name');
 
@@ -79,7 +89,11 @@ export function useProductsWithStock() {
         requires_prescription: product.requires_prescription,
         active: product.active,
         current_stock: stockMap.get(product.id) || 0,
-        locations: locationsMap.get(product.id) || []
+        locations: locationsMap.get(product.id) || [],
+        category: product.categories ? {
+          id: product.categories.id,
+          name: product.categories.name
+        } : undefined
       }));
 
       setProducts(productsWithStock);

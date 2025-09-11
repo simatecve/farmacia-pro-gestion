@@ -24,6 +24,14 @@ export interface Product {
   location_id: string | null;
   created_at: string;
   updated_at: string;
+  category?: {
+    id: string;
+    name: string;
+  };
+  location?: {
+    id: string;
+    name: string;
+  };
 }
 
 export function useProducts() {
@@ -36,7 +44,11 @@ export function useProducts() {
       setLoading(true);
       const { data, error } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          category:categories(id, name),
+          location:locations(id, name)
+        `)
         .order('name');
       
       if (error) throw error;
@@ -65,6 +77,9 @@ export function useProducts() {
         location_id: (item as any).location_id ?? null,
         created_at: item.created_at,
         updated_at: item.updated_at,
+        // Add the related data
+        category: (item as any).category,
+        location: (item as any).location
       }));
       
       setProducts(mappedData);
@@ -82,7 +97,11 @@ export function useProducts() {
       const { data, error } = await supabase
         .from('products')
         .insert([productData])
-        .select()
+        .select(`
+          *,
+          category:categories(id, name),
+          location:locations(id, name)
+        `)
         .single();
       
       console.log('Supabase response:', { data, error });
@@ -112,6 +131,9 @@ export function useProducts() {
         location_id: (data as any).location_id ?? null,
         created_at: data.created_at,
         updated_at: data.updated_at,
+        // Add the related data
+        category: (data as any).category,
+        location: (data as any).location
       };
       
       setProducts(prev => [...prev, mappedData]);
@@ -129,7 +151,11 @@ export function useProducts() {
         .from('products')
         .update(productData)
         .eq('id', id)
-        .select()
+        .select(`
+          *,
+          category:categories(id, name),
+          location:locations(id, name)
+        `)
         .single();
       
       console.log('Supabase update response:', { data, error });
@@ -159,6 +185,9 @@ export function useProducts() {
         location_id: (data as any).location_id ?? null,
         created_at: data.created_at,
         updated_at: data.updated_at,
+        // Add the related data
+        category: (data as any).category,
+        location: (data as any).location
       };
       
       setProducts(prev => prev.map(prod => prod.id === id ? mappedData : prod));

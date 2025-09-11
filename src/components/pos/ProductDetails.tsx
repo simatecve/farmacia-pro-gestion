@@ -116,6 +116,13 @@ export function ProductDetails({ product, isOpen, onClose, onAddToCart }: Produc
                 </div>
               )}
               
+              {product.category && (
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Categoría:</span>
+                  <span className="text-sm font-medium">{product.category.name}</span>
+                </div>
+              )}
+              
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">Tipo de Unidad:</span>
                 <span className="text-sm font-medium">{product.unit_type}</span>
