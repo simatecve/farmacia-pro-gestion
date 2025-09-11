@@ -102,10 +102,7 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
         payment_method: paymentMethod,
         notes: notes || undefined,
         cash_received: paymentMethod === 'cash' ? cashReceived : undefined,
-        change_amount: paymentMethod === 'cash' ? changeAmount : undefined,
-        total: finalTotal,
-        discount: discount + pointsDiscount,
-        points_redeemed: pointsToRedeem
+        change_amount: paymentMethod === 'cash' ? changeAmount : undefined
       });
 
       // Procesos automáticos post-venta
@@ -328,27 +325,27 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
               </div>
 
               {/* Canje de Puntos */}
-              {selectedClient && selectedClient.points > 0 && (
+              {selectedClient && selectedClient.loyalty_points > 0 && (
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Canjear Puntos ({selectedClient.points} disponibles)</Label>
+                  <Label className="text-sm font-medium">Canjear Puntos ({selectedClient.loyalty_points} disponibles)</Label>
                   <div className="flex items-center space-x-2">
                     <Input
                       type="number"
                       placeholder="0"
                       value={pointsToRedeem}
                       onChange={(e) => {
-                        const points = Math.min(Number(e.target.value) || 0, selectedClient.points);
+                        const points = Math.min(Number(e.target.value) || 0, selectedClient.loyalty_points);
                         handlePointsRedemption(points);
                       }}
                       className="flex-1"
                       min="0"
-                      max={selectedClient.points}
+                      max={selectedClient.loyalty_points}
                     />
                     <Button
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => handlePointsRedemption(selectedClient.points)}
+                      onClick={() => handlePointsRedemption(selectedClient.loyalty_points)}
                     >
                       Máx
                     </Button>

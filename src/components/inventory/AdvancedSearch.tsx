@@ -96,9 +96,9 @@ export function AdvancedSearch({
           name,
           sku,
           barcode,
-          price,
+          sale_price,
           description,
-          categories (
+          category:categories (
             id,
             name
           )
@@ -120,11 +120,11 @@ export function AdvancedSearch({
         name: product.name,
         sku: product.sku,
         barcode: product.barcode,
-        price: product.price,
+        price: product.sale_price,
         description: product.description,
-        category: product.categories ? {
-          id: product.categories.id,
-          name: product.categories.name
+        category: product.category ? {
+          id: product.category.id,
+          name: product.category.name
         } : undefined
       }));
 
@@ -154,9 +154,9 @@ export function AdvancedSearch({
               name,
               sku,
               barcode,
-              price,
+              sale_price,
               description,
-              categories (
+              category:categories (
                 id,
                 name
               )

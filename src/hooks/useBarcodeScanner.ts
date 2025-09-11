@@ -49,8 +49,8 @@ export function useBarcodeScanner(options: BarcodeScannerOptions = {}) {
           name,
           sku,
           barcode,
-          price,
-          categories (
+          sale_price,
+          category:categories (
             id,
             name
           )
@@ -70,10 +70,10 @@ export function useBarcodeScanner(options: BarcodeScannerOptions = {}) {
           name: product.name,
           sku: product.sku,
           barcode: product.barcode,
-          price: product.price,
-          category: product.categories ? {
-            id: product.categories.id,
-            name: product.categories.name
+          price: product.sale_price,
+          category: product.category ? {
+            id: product.category.id,
+            name: product.category.name
           } : undefined
         } : undefined,
         found: !!product

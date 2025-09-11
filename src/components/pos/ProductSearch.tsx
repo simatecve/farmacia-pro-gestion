@@ -41,9 +41,9 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
         const nameMatch = product.name.toLowerCase().includes(searchLower);
         const skuMatch = product.sku?.toLowerCase().includes(searchLower);
         const barcodeMatch = product.barcode?.toLowerCase().includes(searchLower);
-        const descriptionMatch = product.description?.toLowerCase().includes(searchLower);
+        // Note: description not available in ProductWithStock interface
         
-        return nameMatch || skuMatch || barcodeMatch || descriptionMatch;
+        return nameMatch || skuMatch || barcodeMatch;
       });
       setFilteredProducts(filtered.slice(0, 20));
     }
@@ -65,7 +65,7 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
   const handleBarcodeSearch = (barcode: string) => {
     const product = products.find(p => p.barcode === barcode);
     if (product) {
-      handleAddProduct(product);
+      onAddProduct(product);
       setSearchTerm("");
     }
   };
@@ -92,7 +92,7 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
     }
     
     if (product) {
-      handleAddProduct(product);
+      onAddProduct(product);
       setSearchTerm("");
     } else {
       toast({

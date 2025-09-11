@@ -9,7 +9,7 @@ import { useUserRoles, type AppRole, type UserProfile } from '@/hooks/useUserRol
 import { useUserInvite } from '@/hooks/useUserInvite';
 import { useToast } from '@/hooks/use-toast';
 
-interface UserFormProps {
+interface UserFormNewProps {
   user?: UserProfile;
   onClose: () => void;
   onSuccess: () => void;
@@ -29,9 +29,9 @@ const roleDescriptions: Record<AppRole, string> = {
   viewer: 'Solo lectura de información'
 };
 
-export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
+export function UserFormNew({ user, onClose, onSuccess }: UserFormNewProps) {
   const { updateProfile, assignRole, removeRole, canManageRole } = useUserRoles();
-  const { createUser, inviteUser } = useUserInvite();
+  const { createUser } = useUserInvite();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   
@@ -51,6 +51,15 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
       toast({
         title: "Error",
         description: "El email es requerido",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (selectedRoles.size === 0) {
+      toast({
+        title: "Error",
+        description: "Debe seleccionar al menos un rol",
         variant: "destructive",
       });
       return;
@@ -87,8 +96,12 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
           description: "Los cambios se han guardado correctamente",
         });
       } else {
-        // Crear nuevo usuario
-        const result = await createUser(formData.email, formData.full_name, Array.from(selectedRoles));
+        // Create new user
+        const result = await createUser(
+          formData.email, 
+          formData.full_name, 
+          Array.from(selectedRoles)
+        );
         
         if (!result.success) {
           toast({
@@ -152,7 +165,7 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
               />
             </div>
             <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"

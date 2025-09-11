@@ -52,7 +52,36 @@ export function useProducts() {
         .order('name');
       
       if (error) throw error;
-      setProducts(data || []);
+      
+      // Transform data to match Product interface with proper type conversion
+      const transformedData: Product[] = (data || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        sku: item.sku,
+        barcode: item.barcode,
+        code: item.code,
+        category_id: item.category_id,
+        unit_type: item.unit_type,
+        presentation: item.presentation,
+        concentration: item.concentration,
+        laboratory: item.laboratory,
+        image_url: item.image_url,
+        expiry_date: item.expiry_date,
+        sale_price: item.sale_price,
+        purchase_price: item.purchase_price,
+        min_stock: item.min_stock,
+        max_stock: item.max_stock,
+        requires_prescription: item.requires_prescription,
+        active: item.active,
+        location_id: item.location_id || null,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        category: Array.isArray(item.category) ? item.category[0] : item.category,
+        location: Array.isArray(item.location) ? item.location[0] : item.location
+      }));
+      
+      setProducts(transformedData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error cargando productos');
     } finally {
@@ -60,7 +89,7 @@ export function useProducts() {
     }
   };
 
-  const createProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'updated_at' | 'category'>) => {
+  const createProduct = async (productData: Omit<Product, 'id' | 'created_at' | 'updated_at' | 'category' | 'location'>) => {
     try {
       const { data, error } = await supabase
         .from('products')
@@ -73,14 +102,43 @@ export function useProducts() {
         .single();
       
       if (error) throw error;
-      setProducts(prev => [...prev, data]);
-      return data;
+      
+      // Transform data to match Product interface
+      const transformedData: Product = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        sku: data.sku,
+        barcode: data.barcode,
+        code: data.code,
+        category_id: data.category_id,
+        unit_type: data.unit_type,
+        presentation: data.presentation,
+        concentration: data.concentration,
+        laboratory: data.laboratory,
+        image_url: data.image_url,
+        expiry_date: data.expiry_date,
+        sale_price: data.sale_price,
+        purchase_price: data.purchase_price,
+        min_stock: data.min_stock,
+        max_stock: data.max_stock,
+        requires_prescription: data.requires_prescription,
+        active: data.active,
+        location_id: data.location_id || null,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        category: Array.isArray(data.category) ? data.category[0] : data.category,
+        location: Array.isArray(data.location) ? data.location[0] : data.location
+      };
+      
+      setProducts(prev => [...prev, transformedData]);
+      return transformedData;
     } catch (err) {
       throw new Error(err instanceof Error ? err.message : 'Error creando producto');
     }
   };
 
-  const updateProduct = async (id: string, productData: Partial<Omit<Product, 'id' | 'created_at' | 'updated_at' | 'category'>>) => {
+  const updateProduct = async (id: string, productData: Partial<Omit<Product, 'id' | 'created_at' | 'updated_at' | 'category' | 'location'>>) => {
     try {
       // Verificar autenticación
       const { data: { user } } = await supabase.auth.getUser();
@@ -106,8 +164,36 @@ export function useProducts() {
         throw error;
       }
       
-      setProducts(prev => prev.map(prod => prod.id === id ? data : prod));
-      return data;
+      // Transform data to match Product interface
+      const transformedData: Product = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        sku: data.sku,
+        barcode: data.barcode,
+        code: data.code,
+        category_id: data.category_id,
+        unit_type: data.unit_type,
+        presentation: data.presentation,
+        concentration: data.concentration,
+        laboratory: data.laboratory,
+        image_url: data.image_url,
+        expiry_date: data.expiry_date,
+        sale_price: data.sale_price,
+        purchase_price: data.purchase_price,
+        min_stock: data.min_stock,
+        max_stock: data.max_stock,
+        requires_prescription: data.requires_prescription,
+        active: data.active,
+        location_id: data.location_id || null,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        category: Array.isArray(data.category) ? data.category[0] : data.category,
+        location: Array.isArray(data.location) ? data.location[0] : data.location
+      };
+      
+      setProducts(prev => prev.map(prod => prod.id === id ? transformedData : prod));
+      return transformedData;
     } catch (err) {
       console.error('Error in updateProduct:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error actualizando producto';
