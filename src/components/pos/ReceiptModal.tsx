@@ -122,82 +122,134 @@ Recuerde también puede consultar su comprobante en el portal del SRI.
         
         <ScrollArea className="max-h-[70vh]">
           <Card className="receipt-print">
-            <CardContent className="p-4">
+            <CardContent className="p-6">
               {/* Header */}
-              <div className="text-center mb-4">
-                <h2 className="text-lg font-bold">FARMACIA DAALEF</h2>
-                <p className="text-sm mt-2">Ticket de Venta</p>
-                <p className="text-sm font-medium">N°: {sale.sale_number}</p>
+              <div className="text-center mb-6">
+                <h2 className="text-lg font-bold">{companySettings?.company_name || 'QUINGA SANCHEZ JOHN WILFRIDO'}</h2>
+                <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                  <p>RUC: {companySettings?.tax_id || '1709738635001'}</p>
+                  <p>Dirección: {companySettings?.address || 'PICHINCHA / QUITO / LA MAGDALENA / OE 7B OE7-42'}</p>
+                  <p>Teléfono: {companySettings?.phone || '0987654321'}</p>
+                  <p>Email: {companySettings?.email || 'farmacia@daalef.com'}</p>
+                </div>
+                <div className="mt-4">
+                  <h3 className="font-bold">FACTURA DE VENTA</h3>
+                  <p className="text-sm">N°: {sale.sale_number}</p>
+                </div>
               </div>
 
-            <Separator className="mb-3" />
+            <Separator className="mb-4" />
 
             {/* Sale Info */}
-            <div className="space-y-1 mb-3">
+            <div className="space-y-2 mb-4">
               <div className="flex justify-between text-sm">
-                <span>Fecha:</span>
-                <span>{format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: es })}</span>
+                <span className="font-medium">Fecha y Hora:</span>
+                <span>{format(new Date(sale.created_at), "dd/MM/yyyy HH:mm:ss", { locale: es })}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Cliente:</span>
+                <span className="font-medium">Cliente:</span>
                 <span>{client?.name || 'CONSUMIDOR FINAL'}</span>
               </div>
+              {client?.phone && (
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">Teléfono:</span>
+                  <span>{client.phone}</span>
+                </div>
+              )}
+              {client?.address && (
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">Dirección:</span>
+                  <span>{client.address}</span>
+                </div>
+              )}
+              {client?.identification_number && (
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">Cédula:</span>
+                  <span>{client.identification_number}</span>
+                </div>
+              )}
             </div>
 
-            <Separator className="mb-3" />
+            <Separator className="mb-4" />
 
             {/* Products */}
-            <div className="space-y-1 mb-3">
-              <p className="text-sm font-medium">PRODUCTOS</p>
+            <div className="space-y-2 mb-4">
+              <div className="grid grid-cols-4 gap-2 text-xs font-medium">
+                <div className="col-span-1">CANT</div>
+                <div className="col-span-1">PRODUCTO</div>
+                <div className="col-span-1 text-right">PRECIO</div>
+                <div className="col-span-1 text-right">TOTAL</div>
+              </div>
               <Separator />
               {sale.items?.map((item, index) => (
-                <div key={index} className="text-sm">
-                  <div>{item.product_name}</div>
-                  <div className="flex justify-between">
-                    <span>{item.quantity} x ${item.unit_price.toFixed(2)}</span>
-                    <span>${item.total_price.toFixed(2)}</span>
-                  </div>
+                <div key={index} className="grid grid-cols-4 gap-2 text-sm">
+                  <div className="col-span-1">{item.quantity}</div>
+                  <div className="col-span-1">{item.product_name}</div>
+                  <div className="col-span-1 text-right">${item.unit_price.toFixed(2)}</div>
+                  <div className="col-span-1 text-right">${item.total_price.toFixed(2)}</div>
                 </div>
               ))}
             </div>
 
-            <Separator className="mb-3" />
+            <Separator className="mb-4" />
 
             {/* Totals */}
-            <div className="space-y-1 mb-3">
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between text-sm">
+                <span>Subtotal 0%:</span>
+                <span>${(sale.total_amount - sale.tax_amount).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Subtotal 15%:</span>
+                <span>$0.00</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>{taxName} {(taxRate * 100).toFixed(0)}%:</span>
+                <span>${sale.tax_amount.toFixed(2)}</span>
+              </div>
               {sale.discount_amount > 0 && (
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-sm text-green-600">
                   <span>Descuento:</span>
                   <span>-${sale.discount_amount.toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-base font-bold">
+              <Separator />
+              <div className="flex justify-between text-lg font-bold">
                 <span>TOTAL:</span>
                 <span>${sale.total_amount.toFixed(2)}</span>
               </div>
             </div>
 
-            <Separator className="mb-3" />
+            <Separator className="mb-4" />
 
             {/* Payment Method */}
-            <div className="space-y-1 mb-3">
+            <div className="space-y-2 mb-4">
               <div className="flex justify-between text-sm">
-                <span>Pago:</span>
+                <span className="font-medium">Forma de Pago:</span>
                 <span>{getPaymentMethodLabel(sale.payment_method || '')}</span>
               </div>
-              {sale.payment_method === 'cash' && sale.change_amount > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span>Cambio:</span>
-                  <span>${(sale.change_amount || 0).toFixed(2)}</span>
-                </div>
+              {sale.payment_method === 'cash' && (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">Efectivo Recibido:</span>
+                    <span>${(sale.cash_received || sale.total_amount).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">Cambio:</span>
+                    <span>${(sale.change_amount || 0).toFixed(2)}</span>
+                  </div>
+                </>
               )}
             </div>
 
-            <Separator className="mb-3" />
+            <Separator className="mb-4" />
 
             {/* Footer */}
-            <div className="text-center text-sm">
+            <div className="text-center text-xs text-gray-600 space-y-1">
               <p>¡Gracias por su compra!</p>
+              <p>Vuelva pronto</p>
+              <p className="mt-2">Sistema de Gestión Farmacéutica</p>
+              <p>© 2024 - Todos los derechos reservados</p>
             </div>
           </CardContent>
         </Card>
