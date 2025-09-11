@@ -66,7 +66,20 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
     const product = products.find(p => p.barcode === barcode);
     if (product) {
       onAddProduct(product);
-      setSearchTerm("");
+      // Actualizar el término de búsqueda para mostrar el producto en el filtro
+      setSearchTerm(barcode);
+      toast({
+        title: "Producto agregado",
+        description: `${product.name} agregado al carrito`,
+      });
+    } else {
+      // Si no se encuentra el producto, mostrar el código en el buscador
+      setSearchTerm(barcode);
+      toast({
+        title: "Producto no encontrado",
+        description: `No se encontró producto con código: ${barcode}`,
+        variant: "destructive"
+      });
     }
   };
 
@@ -208,28 +221,50 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
                   className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
                   onClick={() => handleShowProductDetails(product)}
                 >
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm truncate">{product.name}</h4>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        ${product.sale_price.toFixed(2)}
-                      </Badge>
-                      {product.sku && (
-                        <Badge variant="secondary" className="text-xs">
-                          SKU: {product.sku}
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {/* Product Image */}
+                    <div className="flex-shrink-0">
+                      {product.image_url ? (
+                        <img 
+                          src={product.image_url} 
+                          alt={product.name}
+                          className="w-12 h-12 object-cover rounded-md border"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-12 h-12 bg-muted rounded-md border flex items-center justify-center ${product.image_url ? 'hidden' : ''}`}>
+                        <Package className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    </div>
+                    
+                    {/* Product Info */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm truncate">{product.name}</h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className="text-xs">
+                          ${product.sale_price.toFixed(2)}
                         </Badge>
-                      )}
-                      <Badge variant={
-                        (product.current_stock || 0) > 0 ? "default" : "destructive"
-                      } className="text-xs">
-                        Stock: {product.current_stock || 0}
-                      </Badge>
-                      {product.requires_prescription && (
-                        <Badge variant="destructive" className="text-xs flex items-center gap-1">
-                          <AlertTriangle className="h-3 w-3" />
-                          Receta
+                        {product.sku && (
+                          <Badge variant="secondary" className="text-xs">
+                            SKU: {product.sku}
+                          </Badge>
+                        )}
+                        <Badge variant={
+                          (product.current_stock || 0) > 0 ? "default" : "destructive"
+                        } className="text-xs">
+                          Stock: {product.current_stock || 0}
                         </Badge>
-                      )}
+                        {product.requires_prescription && (
+                          <Badge variant="destructive" className="text-xs flex items-center gap-1">
+                            <AlertTriangle className="h-3 w-3" />
+                            Receta
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 ml-2">

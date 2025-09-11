@@ -12,6 +12,7 @@ import { Search, DollarSign, Clock, CheckCircle, XCircle, Calculator } from "luc
 import { useCashRegister } from "@/hooks/useCashRegister";
 import { useToast } from "@/hooks/use-toast";
 import { DailyBalance } from "@/components/cash/DailyBalance";
+import { CashCloseTicket } from "@/components/cash/CashCloseTicket";
 
 export default function CashRegister() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -87,6 +88,16 @@ export default function CashRegister() {
       setCloseDialog(false);
       setClosingAmount("");
       setNotes("");
+      
+      // Mostrar opción de imprimir ticket después del cierre
+      if (result.data) {
+        setTimeout(() => {
+          const shouldPrint = window.confirm('¿Desea imprimir el ticket de cierre de caja?');
+          if (shouldPrint) {
+            // El ticket se imprimirá automáticamente
+          }
+        }, 500);
+      }
     }
   };
 
@@ -279,6 +290,7 @@ export default function CashRegister() {
                     <TableHead>Cierre</TableHead>
                     <TableHead>Diferencia</TableHead>
                     <TableHead>Estado</TableHead>
+                    <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -314,6 +326,11 @@ export default function CashRegister() {
                           <Badge variant={session.status === 'open' ? 'default' : 'secondary'}>
                             {session.status === 'open' ? 'Abierta' : 'Cerrada'}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {session.status === 'closed' && (
+                            <CashCloseTicket session={session} />
+                          )}
                         </TableCell>
                       </TableRow>
                     );

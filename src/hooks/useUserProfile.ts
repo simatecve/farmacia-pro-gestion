@@ -31,7 +31,7 @@ export function useUserProfile() {
       setLoading(true);
       setError(null);
 
-      // Get user profile with roles
+      // Get user profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select(`
@@ -40,17 +40,23 @@ export function useUserProfile() {
           full_name,
           avatar_url,
           created_at,
-          updated_at,
-          user_roles(
-            role,
-            active
-          )
+          updated_at
         `)
         .eq('id', user.id)
         .single();
 
       if (profileError) {
         throw profileError;
+      }
+
+      // Get user roles separately
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('role, active')
+        .eq('user_id', user.id);
+
+      if (rolesError) {
+        console.warn('Error getting user roles:', rolesError);
       }
 
       // Get current user role using RPC function
@@ -62,7 +68,7 @@ export function useUserProfile() {
       }
 
       // Extract active roles
-      const activeRoles = profileData.user_roles
+      const activeRoles = userRoles
         ?.filter((ur: any) => ur.active)
         ?.map((ur: any) => ur.role) || [];
 

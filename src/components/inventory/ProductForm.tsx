@@ -49,7 +49,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const [error, setError] = useState<string | null>(null);
 
   // Hooks
-  const { createProduct, updateProduct } = useProducts();
+  const { createProduct, updateProduct, refreshProducts } = useProducts();
   const { categories } = useCategories();
   const { locations, loading: locationsLoading, error: locationsError } = useLocations();
   const { toast } = useToast();
@@ -253,6 +253,9 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
         setImageFile(null);
         setImagePreview(null);
       }
+      
+      // Refrescar la lista de productos
+      await refreshProducts();
       onSave?.();
     } catch (error) {
       console.error('Error saving product:', error);

@@ -84,8 +84,8 @@ class PrinterService {
   private async printViaBrowser(content: string): Promise<boolean> {
     return new Promise((resolve) => {
       try {
-        // Crear ventana de impresión
-        const printWindow = window.open('', '_blank', 'width=300,height=600');
+        // Crear ventana de impresión oculta
+        const printWindow = window.open('', '_blank', 'width=1,height=1,left=-1000,top=-1000');
         if (!printWindow) {
           resolve(false);
           return;
@@ -98,22 +98,24 @@ class PrinterService {
           <!DOCTYPE html>
           <html>
             <head>
-              <title>Ticket</title>
               <style>
+                @page { margin: 0; size: 80mm auto; }
                 @media print {
-                  body { margin: 0; font-family: 'Courier New', monospace; font-size: 12px; }
-                  .ticket { width: 80mm; }
+                  body { margin: 0; padding: 10px; font-family: 'Courier New', monospace; font-size: 12px; }
+                  .ticket { width: 100%; }
                   .center { text-align: center; }
                   .right { text-align: right; }
                   .bold { font-weight: bold; }
                   .line { border-bottom: 1px dashed #000; margin: 5px 0; }
+                  .no-print { display: none !important; }
                 }
-                body { font-family: 'Courier New', monospace; font-size: 12px; }
-                .ticket { width: 300px; margin: 0 auto; }
+                body { font-family: 'Courier New', monospace; font-size: 12px; margin: 0; padding: 10px; }
+                .ticket { width: 100%; }
                 .center { text-align: center; }
                 .right { text-align: right; }
                 .bold { font-weight: bold; }
                 .line { border-bottom: 1px dashed #000; margin: 5px 0; }
+                .no-print { display: none; }
               </style>
             </head>
             <body>
@@ -126,13 +128,17 @@ class PrinterService {
 
         printWindow.document.close();
         
-        // Esperar a que cargue y luego imprimir
+        // Esperar a que cargue y luego imprimir automáticamente
         printWindow.onload = () => {
           setTimeout(() => {
+            // Imprimir directamente sin mostrar el diálogo
             printWindow.print();
-            printWindow.close();
+            // Cerrar la ventana después de un breve delay
+            setTimeout(() => {
+              printWindow.close();
+            }, 1000);
             resolve(true);
-          }, 500);
+          }, 100);
         };
       } catch (error) {
         console.error('Error creando ventana de impresión:', error);

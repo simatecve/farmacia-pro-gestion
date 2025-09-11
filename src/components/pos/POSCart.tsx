@@ -39,7 +39,7 @@ export function POSCart({
         </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-4">
-        <div className="flex-1 overflow-y-auto space-y-2 mb-3">
+        <div className="flex-1 overflow-y-auto space-y-2 mb-3 max-h-96">
           {items.length === 0 ? (
             <div className="text-center text-muted-foreground py-12">
               <div className="text-6xl opacity-20 mb-4">🛒</div>

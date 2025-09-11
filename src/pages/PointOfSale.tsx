@@ -5,6 +5,7 @@ import { POSCheckout } from "@/components/pos/POSCheckout";
 import { ReceiptModal } from "@/components/pos/ReceiptModal";
 import { useSales, SaleItem, Sale } from "@/hooks/useSales";
 import { useClients } from "@/hooks/useClients";
+import { useCashRegister } from "@/hooks/useCashRegister";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,7 @@ export default function PointOfSale() {
   
   const { createSale, generateSaleNumber } = useSales();
   const { clients } = useClients();
+  const { currentSession, updateSessionSales } = useCashRegister();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -119,6 +121,11 @@ export default function PointOfSale() {
       };
 
       const createdSale = await createSale(sale, cartItems);
+      
+      // Update cash register session if there's an active session
+      if (currentSession) {
+        await updateSessionSales(currentSession.id, total, saleData.payment_method);
+      }
       
       // Set the completed sale with items for the receipt
       const saleWithItems = {

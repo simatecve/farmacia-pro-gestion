@@ -65,7 +65,7 @@ export function useInventory() {
         .from('inventory')
         .select(`
           *,
-          product:products(id, name, sku, unit_type),
+          product:products(id, name, sku, barcode, description, unit_type, sale_price, categories(id, name)),
           location:locations(id, name)
         `)
         .order('created_at', { ascending: false });

@@ -10,6 +10,8 @@ import { useProducts } from '@/hooks/useProducts';
 import { useLocations } from '@/hooks/useLocations';
 import { useToast } from '@/hooks/use-toast';
 import { AdvancedSearch } from '@/components/inventory/AdvancedSearch';
+import { ProductDropdown } from '@/components/inventory/ProductDropdown';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface MovementFormProps {
   onSave?: () => void;
@@ -29,7 +31,7 @@ export function MovementForm({ onSave, onCancel }: MovementFormProps) {
   });
 
   const [saving, setSaving] = useState(false);
-  const { createMovement, updateInventoryStock, inventory } = useInventory();
+  const { createMovement, updateInventoryStock, inventory, refreshInventory, refreshMovements } = useInventory();
   const { products } = useProducts();
   const { locations } = useLocations();
   const { toast } = useToast();
@@ -133,6 +135,9 @@ export function MovementForm({ onSave, onCancel }: MovementFormProps) {
         notes: ''
       });
 
+      // Refrescar inventario y movimientos
+      await refreshInventory();
+      await refreshMovements();
       onSave?.();
     } catch (error) {
       toast({
@@ -159,11 +164,29 @@ export function MovementForm({ onSave, onCancel }: MovementFormProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="product">Producto *</Label>
-              <AdvancedSearch
-                onProductSelect={(product) => updateField('product_id', product.id)}
-                placeholder="Buscar producto por nombre, SKU o código de barras..."
-                selectedProductId={formData.product_id}
-              />
+              <Tabs defaultValue="search" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="search">Búsqueda</TabsTrigger>
+                  <TabsTrigger value="dropdown">Lista</TabsTrigger>
+                </TabsList>
+                <TabsContent value="search">
+                  <AdvancedSearch
+                    onProductSelect={(product) => updateField('product_id', product.id)}
+                    placeholder="Buscar producto por nombre, SKU o código de barras..."
+                    selectedProductId={formData.product_id}
+                    showResults={true}
+                  />
+                </TabsContent>
+                <TabsContent value="dropdown">
+                  <ProductDropdown
+                    onProductSelect={(productId, product) => updateField('product_id', productId)}
+                    value={formData.product_id}
+                    placeholder="Seleccionar producto de la lista"
+                    showPrice={true}
+                    filterActive={true}
+                  />
+                </TabsContent>
+              </Tabs>
             </div>
 
             <div>

@@ -39,34 +39,43 @@ export function ReceiptModal({ isOpen, onClose, sale, client }: ReceiptModalProp
 
   const generateReceiptText = () => {
     const receiptText = `
-${companySettings?.name || 'Daalef Farmacia'}
-${companySettings?.address || 'Av. Principal 123, Centro Comercial Plaza, Local 45'}
-${companySettings?.phone ? `Tel: ${companySettings.phone}` : 'Tel: +593 2 123-4567'}
-${companySettings?.tax_id ? `RUC: ${companySettings.tax_id}` : 'RUC: 1234567890001'}
-Lic. Sanitaria: MSP-2024-001234
+        QUINGA SANCHEZ JOHN WILFRIDO
 
-FACTURA: ${sale.sale_number}
-FECHA: ${format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: es })}
-CAJERO: Sistema
-CLIENTE: ${client?.name || 'CONSUMIDOR FINAL'}
+        RUC: 1709738635001
+Dirección: PICHINCHA / QUITO / LA MAGDALENA / OE
+                7B OE7-42
+Teléfono: 0987654321
+Email: farmacia@daalef.com
 
-PRODUCTO${' '.repeat(15)}CANT${' '.repeat(5)}PRECIO${' '.repeat(3)}TOTAL
+        FACTURA DE VENTA
+        N°: ${sale.sale_number}
+
+Fecha: ${format(new Date(sale.created_at), "dd/MM/yyyy", { locale: es })}
+Hora: ${format(new Date(sale.created_at), "HH:mm:ss", { locale: es })}
+Cajero: QUINGA SANCHEZ JOHN WILFRIDO
+Cliente: ${client?.name || 'CONSUMIDOR FINAL'}
+${client?.identification_number ? `Cédula: ${client.identification_number}` : ''}
+
+================================================
+Cant  Descripción                      Total
+================================================
 ${sale.items?.map(item => 
-  `${item.product_name}\n${item.quantity}\n$${item.unit_price.toFixed(2)}\n$${item.total_price.toFixed(2)}`
+  `${item.quantity.toString().padEnd(4)} ${item.product_name.padEnd(30)} ${item.total_price.toFixed(2).padStart(8)}`
 ).join('\n') || ''}
+================================================
 
-SUBTOTAL:$${(sale.total_amount - sale.tax_amount).toFixed(2)}
-${taxName} (${(taxRate * 100).toFixed(0)}%):$${sale.tax_amount.toFixed(2)}
-TOTAL:$${sale.total_amount.toFixed(2)}
+                    Subtotal 0%:    ${(sale.total_amount - sale.tax_amount).toFixed(2)}
+                    Subtotal 15%:   0.00
+                    ${taxName} 15%:        ${sale.tax_amount.toFixed(2)}
+                    Descuento:      ${(sale.discount_amount || 0).toFixed(2)}
+                    TOTAL:          ${sale.total_amount.toFixed(2)}
 
-MÉTODO DE PAGO: ${getPaymentMethodLabel(sale.payment_method || '')}
+Forma de Pago: ${getPaymentMethodLabel(sale.payment_method || '')}
+Efectivo Recibido:              ${sale.total_amount.toFixed(2)}
+Cambio:                         0.00
 
-Gracias por confiar en nosotros para su salud y bienestar
-¡Gracias por su compra!
-Conserve este recibo
-
-Sistema: Daalef Farmacia
-Inteligencia de Negocio
+        Gracias por su compra
+        QUINGA SANCHEZ JOHN WILFRIDO
     `;
     return receiptText;
   };
@@ -95,7 +104,7 @@ Inteligencia de Negocio
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md max-h-[90vh]">
-        <DialogHeader>
+        <DialogHeader className="no-print">
           <div className="flex items-center justify-between">
             <DialogTitle>Ticket de Venta</DialogTitle>
             <Button variant="ghost" size="sm" onClick={onClose}>
@@ -109,11 +118,18 @@ Inteligencia de Negocio
             <CardContent className="p-6">
               {/* Header */}
               <div className="text-center mb-6">
-                <h2 className="text-xl font-bold">{companySettings?.name || 'Daalef Farmacia'}</h2>
-                <p className="text-sm text-muted-foreground">{companySettings?.address || 'Av. Principal 123, Centro Comercial Plaza, Local 45'}</p>
-                <p className="text-sm text-muted-foreground">{companySettings?.phone ? `Tel: ${companySettings.phone}` : 'Tel: +593 2 123-4567'}</p>
-                <p className="text-sm text-muted-foreground">{companySettings?.tax_id ? `RUC: ${companySettings.tax_id}` : 'RUC: 1234567890001'}</p>
-                <p className="text-xs text-muted-foreground mt-2">Lic. Sanitaria: MSP-2024-001234</p>
+                <h2 className="text-lg font-bold">QUINGA SANCHEZ JOHN WILFRIDO</h2>
+                <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                  <p>RUC: 1709738635001</p>
+                  <p>Dirección: PICHINCHA / QUITO / LA MAGDALENA / OE</p>
+                  <p className="text-center">7B OE7-42</p>
+                  <p>Teléfono: 0987654321</p>
+                  <p>Email: farmacia@daalef.com</p>
+                </div>
+                <div className="mt-4">
+                  <h3 className="font-bold">FACTURA DE VENTA</h3>
+                  <p className="text-sm">N°: {sale.sale_number}</p>
+                </div>
               </div>
 
             <Separator className="mb-4" />
@@ -121,21 +137,27 @@ Inteligencia de Negocio
             {/* Sale Info */}
             <div className="space-y-2 mb-4">
               <div className="flex justify-between text-sm">
-                <span className="font-medium">FACTURA:</span>
-                <span>{sale.sale_number}</span>
+                <span className="font-medium">Fecha:</span>
+                <span>{format(new Date(sale.created_at), "dd/MM/yyyy", { locale: es })}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="font-medium">FECHA:</span>
-                <span>{format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: es })}</span>
+                <span className="font-medium">Hora:</span>
+                <span>{format(new Date(sale.created_at), "HH:mm:ss", { locale: es })}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="font-medium">CAJERO:</span>
-                <span>Sistema</span>
+                <span className="font-medium">Cajero:</span>
+                <span>QUINGA SANCHEZ JOHN WILFRIDO</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="font-medium">CLIENTE:</span>
+                <span className="font-medium">Cliente:</span>
                 <span>{client?.name || 'CONSUMIDOR FINAL'}</span>
               </div>
+              {client?.identification_number && (
+                <div className="flex justify-between text-sm">
+                  <span className="font-medium">Cédula:</span>
+                  <span>{client.identification_number}</span>
+                </div>
+              )}
             </div>
 
             <Separator className="mb-4" />
@@ -167,54 +189,61 @@ Inteligencia de Negocio
             {/* Totals */}
             <div className="space-y-2 mb-4">
               <div className="flex justify-between text-sm">
-                <span>SUBTOTAL:</span>
-                <span>${(sale.total_amount - sale.tax_amount).toFixed(2)}</span>
+                <span>Subtotal 0%:</span>
+                <span>{(sale.total_amount - sale.tax_amount).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Subtotal 15%:</span>
+                <span>0.00</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>{taxName} 15%:</span>
+                <span>{sale.tax_amount.toFixed(2)}</span>
               </div>
               {sale.discount_amount > 0 && (
                 <div className="flex justify-between text-sm text-green-600">
-                  <span>DESCUENTOS:</span>
-                  <span>-${sale.discount_amount.toFixed(2)}</span>
+                  <span>Descuento:</span>
+                  <span>{sale.discount_amount.toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm">
-                <span>{taxName} ({(taxRate * 100).toFixed(0)}%):</span>
-                <span>{companySettings?.currency_symbol || '$'}{sale.tax_amount.toFixed(2)}</span>
-              </div>
               <Separator />
               <div className="flex justify-between text-lg font-bold">
                 <span>TOTAL:</span>
-                <span>{companySettings?.currency_symbol || '$'}{sale.total_amount.toFixed(2)}</span>
+                <span>{sale.total_amount.toFixed(2)}</span>
               </div>
             </div>
 
             <Separator className="mb-4" />
 
             {/* Payment Method */}
-            <div className="text-center mb-4">
-              <p className="text-sm">
-                <span className="font-medium">MÉTODO DE PAGO: </span>
-                {getPaymentMethodLabel(sale.payment_method || '')}
-              </p>
+            <div className="space-y-2 mb-4">
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">Forma de Pago:</span>
+                <span>{getPaymentMethodLabel(sale.payment_method || '')}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">Efectivo Recibido:</span>
+                <span>{sale.total_amount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="font-medium">Cambio:</span>
+                <span>0.00</span>
+              </div>
             </div>
 
             <Separator className="mb-4" />
 
             {/* Footer */}
-            <div className="text-center text-xs text-muted-foreground space-y-1">
-              <p>Gracias por confiar en nosotros para su salud y bienestar</p>
-              <p className="font-medium">¡Gracias por su compra!</p>
-              <p>Conserve este recibo</p>
-              <div className="mt-4 pt-2 border-t">
-                <p>Sistema: Daalef Farmacia</p>
-                <p>Inteligencia de Negocio</p>
-              </div>
+            <div className="text-center text-sm space-y-2">
+              <p className="font-medium">Gracias por su compra</p>
+              <p className="font-bold">QUINGA SANCHEZ JOHN WILFRIDO</p>
             </div>
           </CardContent>
         </Card>
         </ScrollArea>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 mt-4">
+        <div className="flex gap-3 mt-4 no-print">
           <Button onClick={handlePrint} className="flex-1" variant="outline">
             <Printer className="h-4 w-4 mr-2" />
             Imprimir
@@ -235,6 +264,10 @@ Inteligencia de Negocio
 // Print styles
 const printStyles = `
 @media print {
+  .no-print {
+    display: none !important;
+  }
+  
   .receipt-print {
     width: 80mm;
     margin: 0;
@@ -250,6 +283,16 @@ const printStyles = `
   .receipt-print h2 {
     font-size: 16px !important;
     font-weight: bold !important;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+  }
+  
+  @page {
+    margin: 0;
+    size: 80mm auto;
   }
 }
 `;

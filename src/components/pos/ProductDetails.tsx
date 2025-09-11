@@ -64,22 +64,46 @@ export function ProductDetails({ product, isOpen, onClose, onAddToCart }: Produc
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Product Header */}
-          <div className="space-y-2">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <h3 className="text-xl font-semibold">{product.name}</h3>
+          {/* Product Header with Image */}
+          <div className="space-y-4">
+            <div className="flex items-start gap-4">
+              {/* Product Image */}
+              <div className="flex-shrink-0">
+                {product.image_url ? (
+                  <img 
+                    src={product.image_url} 
+                    alt={product.name}
+                    className="w-24 h-24 object-cover rounded-lg border shadow-sm"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                ) : null}
+                <div className={`w-24 h-24 bg-muted rounded-lg border flex items-center justify-center ${product.image_url ? 'hidden' : ''}`}>
+                  <Package className="h-12 w-12 text-muted-foreground" />
+                </div>
               </div>
-              <div className="flex flex-col items-end gap-2">
-                <Badge variant={product.active ? 'default' : 'secondary'}>
-                  {product.active ? 'Activo' : 'Inactivo'}
-                </Badge>
-                {product.requires_prescription && (
-                  <Badge variant="destructive" className="flex items-center gap-1">
-                    <AlertTriangle className="h-3 w-3" />
-                    Requiere Receta
-                  </Badge>
-                )}
+              
+              {/* Product Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-xl font-semibold">{product.name}</h3>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <Badge variant={product.active ? 'default' : 'secondary'}>
+                      {product.active ? 'Activo' : 'Inactivo'}
+                    </Badge>
+                    {product.requires_prescription && (
+                      <Badge variant="destructive" className="flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" />
+                        Requiere Receta
+                      </Badge>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>

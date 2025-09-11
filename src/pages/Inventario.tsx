@@ -216,7 +216,7 @@ export default function Inventario() {
                       setSelectedProduct(product);
                       setSearchTerm(product.name);
                     }}
-                    showResults={false}
+                    showResults={true}
                     className="w-full"
                   />
                 </div>

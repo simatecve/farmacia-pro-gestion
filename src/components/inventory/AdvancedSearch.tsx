@@ -6,14 +6,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Search, Scan, X, Package, Barcode } from 'lucide-react';
 import { useBarcodeScanner, BarcodeResult } from '@/hooks/useBarcodeScanner';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 
 export interface Product {
   id: string;
   name: string;
   sku: string;
   barcode?: string;
-  price: number;
+  sale_price: number;
   description?: string;
   category?: {
     id: string;
@@ -47,6 +47,7 @@ export function AdvancedSearch({
   const [isSearching, setIsSearching] = useState(false);
   const [showBarcodeIndicator, setShowBarcodeIndicator] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const { toast } = useToast();
 
   // Configurar scanner de código de barras
   const { isScanning, lastScannedCode, buffer } = useBarcodeScanner({
@@ -103,12 +104,7 @@ export function AdvancedSearch({
             name
           )
         `)
-        .or(`
-          name.ilike.%${term}%,
-          sku.ilike.%${term}%,
-          barcode.ilike.%${term}%,
-          description.ilike.%${term}%
-        `)
+        .or(`name.ilike.%${term}%,sku.ilike.%${term}%,barcode.ilike.%${term}%,description.ilike.%${term}%`)
         .limit(maxResults);
 
       if (error) {
@@ -120,7 +116,7 @@ export function AdvancedSearch({
         name: product.name,
         sku: product.sku,
         barcode: product.barcode,
-        price: product.sale_price,
+        sale_price: product.sale_price,
         description: product.description,
         category: product.category ? {
           id: product.category.id,
@@ -134,7 +130,11 @@ export function AdvancedSearch({
       
     } catch (error) {
       console.error('Error searching products:', error);
-      toast.error('Error al buscar productos');
+      toast({
+        title: "Error",
+        description: "Error al buscar productos",
+        variant: "destructive"
+      });
       setSearchResults([]);
       onSearchChange?.(term, []);
     } finally {
@@ -325,7 +325,7 @@ export function AdvancedSearch({
                     )}
                   </div>
                   <div className="text-right">
-                    <span className="font-medium">${product.price.toFixed(2)}</span>
+                    <span className="font-medium">${product.sale_price.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
