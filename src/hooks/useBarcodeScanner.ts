@@ -126,6 +126,7 @@ export function useBarcodeScanner(options: BarcodeScannerOptions = {}) {
 
     // Si es Enter, procesar el buffer
     if (event.key === 'Enter') {
+      event.preventDefault(); // Prevenir comportamiento por defecto del navegador
       if (buffer.trim()) {
         processScannedCode(buffer.trim());
         setBuffer('');
@@ -135,6 +136,7 @@ export function useBarcodeScanner(options: BarcodeScannerOptions = {}) {
 
     // Si es un carácter válido, agregarlo al buffer
     if (event.key.length === 1 && /[a-zA-Z0-9]/.test(event.key)) {
+      event.preventDefault(); // Prevenir comportamiento por defecto para caracteres
       const newBuffer = buffer + event.key;
       setBuffer(newBuffer);
 
