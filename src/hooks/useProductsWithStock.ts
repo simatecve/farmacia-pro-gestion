@@ -11,6 +11,10 @@ export interface ProductWithStock {
   unit_type: string;
   requires_prescription: boolean;
   active: boolean;
+  locations?: Array<{
+    location_name: string;
+    stock: number;
+  }>;
 }
 
 export function useProductsWithStock() {
@@ -32,21 +36,39 @@ export function useProductsWithStock() {
 
       if (productsError) throw productsError;
 
-      // Then get inventory data for these products
+      // Then get inventory data with location information
       const { data: inventoryData, error: inventoryError } = await supabase
         .from('inventory')
-        .select('product_id, current_stock');
+        .select(`
+          product_id, 
+          current_stock,
+          locations (
+            name
+          )
+        `);
 
       if (inventoryError) throw inventoryError;
 
-      // Create a map of product stock totals
+      // Create maps for stock totals and locations
       const stockMap = new Map<string, number>();
+      const locationsMap = new Map<string, Array<{ location_name: string; stock: number }>>();
+      
       (inventoryData || []).forEach(item => {
         const currentStock = stockMap.get(item.product_id) || 0;
         stockMap.set(item.product_id, currentStock + (item.current_stock || 0));
+        
+        // Group locations by product
+        if (item.current_stock > 0 && item.locations?.name) {
+          const productLocations = locationsMap.get(item.product_id) || [];
+          productLocations.push({
+            location_name: item.locations.name,
+            stock: item.current_stock
+          });
+          locationsMap.set(item.product_id, productLocations);
+        }
       });
 
-      // Combine products with their stock information
+      // Combine products with their stock and location information
       const productsWithStock: ProductWithStock[] = (productsData || []).map(product => ({
         id: product.id,
         name: product.name,
@@ -56,7 +78,8 @@ export function useProductsWithStock() {
         unit_type: product.unit_type,
         requires_prescription: product.requires_prescription,
         active: product.active,
-        current_stock: stockMap.get(product.id) || 0
+        current_stock: stockMap.get(product.id) || 0,
+        locations: locationsMap.get(product.id) || []
       }));
 
       setProducts(productsWithStock);

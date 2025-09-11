@@ -10,7 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { CreditCard, DollarSign, Smartphone, User, UserPlus, Percent, Printer, DollarSign as CashDrawer } from "lucide-react";
 import { SaleItem } from "@/hooks/useSales";
 import { useClients } from "@/hooks/useClients";
-import { CashCalculator } from "./CashCalculator";
+import { ClientSearch } from "./ClientSearch";
+
 import { useDeviceDetection } from "@/hooks/useDeviceDetection";
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,6 +41,8 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
   const [discountType, setDiscountType] = useState<'amount' | 'percentage'>('amount');
   const [cashReceived, setCashReceived] = useState(0);
   const [changeAmount, setChangeAmount] = useState(0);
+  const [pointsToRedeem, setPointsToRedeem] = useState(0);
+  const [pointsDiscount, setPointsDiscount] = useState(0);
   const { clients } = useClients();
   const { toast } = useToast();
   const { 
@@ -78,9 +81,19 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
     setChangeAmount(change);
   };
 
+  const handlePointsRedemption = (points: number) => {
+    setPointsToRedeem(points);
+    // 1 punto = $0.01 (ajustar según la configuración del negocio)
+    const discount = points * 0.01;
+    setPointsDiscount(discount);
+  };
+
+  // Calcular total final con descuentos y puntos
+  const finalTotal = Math.max(0, total - pointsDiscount);
+
   const handleProcessSale = async () => {
     if (!paymentMethod) return;
-    if (paymentMethod === 'cash' && cashReceived < total) return;
+    if (paymentMethod === 'cash' && cashReceived < finalTotal) return;
 
     setProcessing(true);
     try {
@@ -89,7 +102,10 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
         payment_method: paymentMethod,
         notes: notes || undefined,
         cash_received: paymentMethod === 'cash' ? cashReceived : undefined,
-        change_amount: paymentMethod === 'cash' ? changeAmount : undefined
+        change_amount: paymentMethod === 'cash' ? changeAmount : undefined,
+        total: finalTotal,
+        discount: discount + pointsDiscount,
+        points_redeemed: pointsToRedeem
       });
 
       // Procesos automáticos post-venta
@@ -101,6 +117,8 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
       setDiscountAmount(0);
       setCashReceived(0);
       setChangeAmount(0);
+      setPointsToRedeem(0);
+      setPointsDiscount(0);
       onDiscountChange(0);
       // Keep default client selected
       const defaultClient = clients.find(client => client.name === 'CONSUMIDOR FINAL');
@@ -171,10 +189,10 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
 
   return (
     <Card className="h-full">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xl flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
+          <CardTitle className="text-lg flex items-center gap-2">
+            <CreditCard className="h-4 w-4" />
             Finalizar Venta
           </CardTitle>
           <div className="flex gap-1">
@@ -193,43 +211,8 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Discount Section */}
-        <div className="space-y-2">
-          <Label className="text-sm font-medium flex items-center gap-2">
-            <Percent className="h-3 w-3" />
-            Descuento
-          </Label>
-          <div className="flex gap-2">
-            <Select 
-              value={discountType} 
-              onValueChange={(value: 'amount' | 'percentage') => setDiscountType(value)}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="amount">$</SelectItem>
-                <SelectItem value="percentage">%</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              type="number"
-              step="0.01"
-              min="0"
-              max={discountType === 'percentage' ? "100" : undefined}
-              placeholder="0"
-              value={discountAmount || ""}
-              onChange={(e) => handleDiscountChange(e.target.value)}
-              className="flex-1"
-            />
-          </div>
-          {discount > 0 && (
-            <p className="text-sm text-green-600">
-              Descuento aplicado: ${discount.toFixed(2)}
-            </p>
-          )}
-        </div>
+      <CardContent className="space-y-4">
+
 
         {/* Client Selection */}
         <div className="space-y-2">
@@ -237,29 +220,16 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
             <User className="h-3 w-3" />
             Cliente
           </Label>
-          <Select value={clientId} onValueChange={setClientId}>
-            <SelectTrigger className="h-10">
-              <SelectValue placeholder="Seleccionar cliente" />
-            </SelectTrigger>
-            <SelectContent>
-              {clients.map((client) => (
-                <SelectItem key={client.id} value={client.id}>
-                  <div className="flex flex-col">
-                    <span className="font-medium">{client.name}</span>
-                    {client.identification_number !== '0000000' && (
-                      <span className="text-sm text-muted-foreground">
-                        {client.identification_number}
-                      </span>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <ClientSearch
+            onClientSelect={(client) => setClientId(client.id)}
+            selectedClientId={clientId}
+            placeholder="Buscar cliente..."
+            showAddNew={true}
+          />
           
           {selectedClient && (
-            <div className="p-2 bg-accent/20 rounded text-sm">
-              <p className="font-medium">{selectedClient.name}</p>
+            <div className="text-sm p-2 bg-accent/20 rounded">
+              <p className="font-medium text-sm">{selectedClient.name}</p>
               {selectedClient.phone !== '0000000' && (
                 <p className="text-xs text-muted-foreground">{selectedClient.phone}</p>
               )}
@@ -268,8 +238,8 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
         </div>
 
         {/* Total Display */}
-        <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-          <div className="space-y-2">
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+          <div className="space-y-1">
             <div className="flex justify-between text-sm">
               <span>Subtotal:</span>
               <span>${subtotal.toFixed(2)}</span>
@@ -280,9 +250,9 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
                 <span>-${discount.toFixed(2)}</span>
               </div>
             )}
-            <div className="flex justify-between border-t pt-2">
+            <div className="flex justify-between border-t pt-1">
               <span className="font-medium">Total a Pagar:</span>
-              <span className="text-xl font-bold text-primary">${total.toFixed(2)}</span>
+              <span className="text-lg font-bold text-primary">${total.toFixed(2)}</span>
             </div>
             <p className="text-xs text-muted-foreground text-center">{items.length} productos</p>
           </div>
@@ -292,94 +262,206 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button 
-              className="w-full h-12 text-base font-semibold" 
-              size="lg"
+              className="w-full h-10 text-sm font-semibold" 
+              size="default"
               disabled={disabled || items.length === 0}
             >
               <CreditCard className="h-4 w-4 mr-2" />
               Procesar Venta
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle className="text-xl">Confirmar Venta</DialogTitle>
             </DialogHeader>
-            <div className="space-y-6">
-              <div className="text-center p-6 bg-accent/20 rounded-lg">
-                <div className="space-y-1">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <div className="text-center p-6 bg-accent/20 rounded-lg">
+                  <div className="space-y-1">
+                    {discount > 0 && (
+                      <>
+                        <p className="text-sm text-muted-foreground">Subtotal: ${subtotal.toFixed(2)}</p>
+                        <p className="text-sm text-green-600">Descuento: -${discount.toFixed(2)}</p>
+                      </>
+                    )}
+                    <p className="text-3xl font-bold text-primary">${total.toFixed(2)}</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{items.length} productos</p>
+                  <p className="text-sm font-medium mt-2">{selectedClient?.name}</p>
+                </div>
+
+                {/* Discount Section */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Percent className="h-3 w-3" />
+                    Descuento
+                  </Label>
+                  <div className="flex gap-2">
+                    <Select 
+                      value={discountType} 
+                      onValueChange={(value: 'amount' | 'percentage') => setDiscountType(value)}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="amount">$</SelectItem>
+                        <SelectItem value="percentage">%</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      max={discountType === 'percentage' ? "100" : undefined}
+                      placeholder="0"
+                      value={discountAmount || ""}
+                      onChange={(e) => handleDiscountChange(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
                   {discount > 0 && (
-                    <>
-                      <p className="text-sm text-muted-foreground">Subtotal: ${subtotal.toFixed(2)}</p>
-                      <p className="text-sm text-green-600">Descuento: -${discount.toFixed(2)}</p>
-                    </>
+                  <p className="text-sm text-green-600">
+                    Descuento aplicado: ${discount.toFixed(2)}
+                  </p>
+                )}
+              </div>
+
+              {/* Canje de Puntos */}
+              {selectedClient && selectedClient.points > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Canjear Puntos ({selectedClient.points} disponibles)</Label>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={pointsToRedeem}
+                      onChange={(e) => {
+                        const points = Math.min(Number(e.target.value) || 0, selectedClient.points);
+                        handlePointsRedemption(points);
+                      }}
+                      className="flex-1"
+                      min="0"
+                      max={selectedClient.points}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePointsRedemption(selectedClient.points)}
+                    >
+                      Máx
+                    </Button>
+                  </div>
+                  {pointsDiscount > 0 && (
+                    <p className="text-sm text-green-600">
+                      Equivalente a un descuento de ${pointsDiscount.toFixed(2)}
+                    </p>
                   )}
-                  <p className="text-3xl font-bold text-primary">${total.toFixed(2)}</p>
                 </div>
-                <p className="text-sm text-muted-foreground">{items.length} productos</p>
-                <p className="text-sm font-medium mt-2">{selectedClient?.name}</p>
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="payment-method" className="text-base font-medium">
-                  Método de Pago *
-                </Label>
-                <div className="grid grid-cols-1 gap-2">
-                  {paymentMethods.map((method) => {
-                    const IconComponent = method.icon;
-                    return (
-                      <Button
-                        key={method.value}
-                        variant={paymentMethod === method.value ? "default" : "outline"}
-                        onClick={() => setPaymentMethod(method.value)}
-                        className="justify-start h-12"
-                      >
-                        <IconComponent className={`h-5 w-5 mr-3 ${method.color}`} />
-                        {method.label}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Cash Calculator for cash payments */}
-              {paymentMethod === 'cash' && (
-                <CashCalculator
-                  total={total}
-                  onAmountChange={handleCashAmountChange}
-                />
               )}
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notas (Opcional)</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Notas adicionales sobre la venta..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                />
-              </div>
+            <div className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="payment-method" className="text-base font-medium">
+                    Método de Pago *
+                  </Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {paymentMethods.map((method) => {
+                      const IconComponent = method.icon;
+                      return (
+                        <Button
+                          key={method.value}
+                          variant={paymentMethod === method.value ? "default" : "outline"}
+                          onClick={() => setPaymentMethod(method.value)}
+                          className="justify-start h-12"
+                        >
+                          <IconComponent className={`h-5 w-5 mr-3 ${method.color}`} />
+                          {method.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-              <div className="flex gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                  className="flex-1"
-                  disabled={processing}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  onClick={handleProcessSale}
-                  disabled={
-                    !paymentMethod || 
-                    processing || 
-                    (paymentMethod === 'cash' && cashReceived < total)
-                  }
-                  className="flex-1"
-                >
-                  {processing ? "Procesando..." : "Confirmar"}
-                </Button>
+                {/* Cash Payment Input */}
+                {paymentMethod === 'cash' && (
+                  <div className="space-y-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="space-y-2">
+                      <Label htmlFor="cash-received">Monto Recibido</Label>
+                      <Input
+                        id="cash-received"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        value={cashReceived || ''}
+                        onChange={(e) => {
+                          const amount = parseFloat(e.target.value) || 0;
+                          setCashReceived(amount);
+                          setChangeAmount(Math.max(0, amount - finalTotal));
+                        }}
+                        className="text-lg font-semibold"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Total a pagar:</span>
+                        <p className="font-semibold text-lg">${finalTotal.toFixed(2)}</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Cambio:</span>
+                        <p className={`font-semibold text-lg ${
+                          changeAmount > 0 ? 'text-green-600' : 
+                          cashReceived < total ? 'text-red-600' : 'text-muted-foreground'
+                        }`}>
+                          ${changeAmount.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {cashReceived > 0 && cashReceived < finalTotal && (
+                      <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+                        ⚠️ Monto insuficiente. Faltan ${(finalTotal - cashReceived).toFixed(2)}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notas (Opcional)</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Notas adicionales sobre la venta..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="flex-1"
+                    disabled={processing}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleProcessSale}
+                    disabled={
+                      !paymentMethod || 
+                      processing || 
+                      (paymentMethod === 'cash' && cashReceived < finalTotal)
+                    }
+                    className="flex-1"
+                  >
+                    {processing ? "Procesando..." : "Confirmar"}
+                  </Button>
+                </div>
               </div>
             </div>
           </DialogContent>

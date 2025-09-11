@@ -30,7 +30,7 @@ const roleDescriptions: Record<AppRole, string> = {
 };
 
 export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
-  const { updateProfile, assignRole, removeRole } = useUserRoles();
+  const { updateProfile, assignRole, removeRole, canManageRole } = useUserRoles();
   const { inviteUser } = useUserInvite();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -164,7 +164,7 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
           <div className="space-y-4">
             <Label>Roles del usuario</Label>
             <div className="grid grid-cols-1 gap-3">
-              {(Object.keys(roleLabels) as AppRole[]).map((role) => (
+              {(Object.keys(roleLabels) as AppRole[]).filter(role => canManageRole(role)).map((role) => (
                 <div key={role} className="flex items-start space-x-3 p-3 border rounded-lg">
                   <Checkbox
                     id={role}
@@ -184,6 +184,11 @@ export function UserForm({ user, onClose, onSuccess }: UserFormProps) {
                   </div>
                 </div>
               ))}
+              {(Object.keys(roleLabels) as AppRole[]).filter(role => !canManageRole(role)).length > 0 && (
+                <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-lg">
+                  <p>Algunos roles no están disponibles según tus permisos actuales.</p>
+                </div>
+              )}
             </div>
           </div>
 

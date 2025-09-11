@@ -207,9 +207,9 @@ export default function PointOfSale() {
           </div>
 
           {/* Right Sidebar - Cart and Checkout */}
-          <div className="space-y-4 h-[calc(100vh-200px)] flex flex-col">
-            {/* Cart */}
-            <div className="flex-1 min-h-0">
+          <div className="h-[calc(100vh-200px)] flex flex-col gap-4">
+            {/* Cart - Takes most of the space */}
+            <div className="flex-1 min-h-0 overflow-hidden">
               <POSCart
                 items={cartItems}
                 onUpdateQuantity={updateQuantity}
@@ -223,8 +223,8 @@ export default function PointOfSale() {
               />
             </div>
             
-            {/* Checkout - Fixed height */}
-            <div className="flex-shrink-0">
+            {/* Checkout - Compact fixed height */}
+            <div className="flex-shrink-0 h-auto">
               <POSCheckout
                 items={cartItems}
                 total={total}

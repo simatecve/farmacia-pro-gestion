@@ -82,6 +82,14 @@ export function useProducts() {
 
   const updateProduct = async (id: string, productData: Partial<Omit<Product, 'id' | 'created_at' | 'updated_at' | 'category'>>) => {
     try {
+      // Verificar autenticación
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('Usuario no autenticado');
+      }
+
+      console.log('Updating product:', id, productData);
+      
       const { data, error } = await supabase
         .from('products')
         .update(productData)
@@ -93,11 +101,17 @@ export function useProducts() {
         `)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error updating product:', error);
+        throw error;
+      }
+      
       setProducts(prev => prev.map(prod => prod.id === id ? data : prod));
       return data;
     } catch (err) {
-      throw new Error(err instanceof Error ? err.message : 'Error actualizando producto');
+      console.error('Error in updateProduct:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Error actualizando producto';
+      throw new Error(errorMessage);
     }
   };
 

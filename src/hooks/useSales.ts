@@ -68,7 +68,7 @@ export const useSales = () => {
     }
   };
 
-  const createSale = async (saleData: Omit<Sale, 'id' | 'created_at'>, items: SaleItem[]) => {
+  const createSale = async (saleData: Omit<Sale, 'id' | 'created_at'> & { points_redeemed?: number }, items: SaleItem[]) => {
     setLoading(true);
     try {
       // Create sale
@@ -80,10 +80,36 @@ export const useSales = () => {
 
       if (saleError) throw saleError;
 
-      // Add loyalty points if client is selected
+      // Handle loyalty points if client is selected
       if (saleData.client_id) {
         try {
-          // Get active loyalty plan
+          // Get current client data
+          const { data: currentClient } = await supabase
+            .from('clients')
+            .select('loyalty_points, total_purchases')
+            .eq('id', saleData.client_id)
+            .single();
+
+          let updatedPoints = currentClient?.loyalty_points || 0;
+          
+          // Handle points redemption first
+          if (saleData.points_redeemed && saleData.points_redeemed > 0) {
+            updatedPoints -= saleData.points_redeemed;
+            
+            // Create redemption transaction
+            await supabase
+              .from('loyalty_transactions')
+              .insert([{
+                client_id: saleData.client_id,
+                transaction_type: 'redeem',
+                points: -saleData.points_redeemed,
+                description: `Puntos canjeados en compra - ${saleData.sale_number}`,
+                reference_id: sale.id,
+                reference_type: 'sale'
+              }]);
+          }
+
+          // Get active loyalty plan for earning points
           const { data: loyaltyPlan } = await supabase
             .from('loyalty_plans')
             .select('*')
@@ -94,7 +120,9 @@ export const useSales = () => {
             const pointsEarned = Math.floor(saleData.total_amount * loyaltyPlan.points_per_currency);
             
             if (pointsEarned > 0) {
-              // Create loyalty transaction
+              updatedPoints += pointsEarned;
+              
+              // Create earning transaction
               await supabase
                 .from('loyalty_transactions')
                 .insert([{
@@ -106,23 +134,18 @@ export const useSales = () => {
                   reference_type: 'sale'
                 }]);
 
-              // Update client points
-              const { data: currentClient } = await supabase
-                .from('clients')
-                .select('loyalty_points, total_purchases')
-                .eq('id', saleData.client_id)
-                .single();
-              
-              await supabase
-                .from('clients')
-                .update({ 
-                  loyalty_points: (currentClient?.loyalty_points || 0) + pointsEarned,
-                  total_purchases: (currentClient?.total_purchases || 0) + saleData.total_amount,
-                  last_purchase_date: new Date().toISOString()
-                })
-                .eq('id', saleData.client_id);
             }
           }
+          
+          // Update client points and purchase data
+          await supabase
+            .from('clients')
+            .update({ 
+              loyalty_points: updatedPoints,
+              total_purchases: (currentClient?.total_purchases || 0) + saleData.total_amount,
+              last_purchase_date: new Date().toISOString()
+            })
+            .eq('id', saleData.client_id);
         } catch (loyaltyError) {
           console.error('Error processing loyalty points:', loyaltyError);
           // Don't fail the entire sale if loyalty points fail

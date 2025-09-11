@@ -28,6 +28,113 @@ export type Database = {
           status: string
           updated_at: string
         }
+      purchase_orders: {
+        Row: {
+          id: string
+          order_number: string
+          supplier_id: string
+          status: string
+          order_date: string
+          expected_delivery_date: string | null
+          received_date: string | null
+          subtotal: number
+          tax_amount: number
+          total_amount: number
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          order_number: string
+          supplier_id: string
+          status?: string
+          order_date?: string
+          expected_delivery_date?: string | null
+          received_date?: string | null
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          order_number?: string
+          supplier_id?: string
+          status?: string
+          order_date?: string
+          expected_delivery_date?: string | null
+          received_date?: string | null
+          subtotal?: number
+          tax_amount?: number
+          total_amount?: number
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      purchase_order_items: {
+        Row: {
+          id: string
+          purchase_order_id: string
+          product_id: string
+          quantity: number
+          unit_price: number
+          total_price: number
+          received_quantity: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          purchase_order_id: string
+          product_id: string
+          quantity: number
+          unit_price: number
+          total_price: number
+          received_quantity?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          purchase_order_id?: string
+          product_id?: string
+          quantity?: number
+          unit_price?: number
+          total_price?: number
+          received_quantity?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
         Insert: {
           amount: number
           amount_paid?: number

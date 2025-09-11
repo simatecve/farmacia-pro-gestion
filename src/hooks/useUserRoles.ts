@@ -166,11 +166,43 @@ export function useUserRoles() {
   };
 
   const hasRole = (role: AppRole): boolean => {
-    return currentUserRole === role || currentUserRole === 'admin';
+    if (!currentUserRole) return false;
+    
+    // Admin has all permissions
+    if (currentUserRole === 'admin') return true;
+    
+    // Exact role match
+    if (currentUserRole === role) return true;
+    
+    // Role hierarchy: manager can do cashier and viewer tasks
+    if (currentUserRole === 'manager' && (role === 'cashier' || role === 'viewer')) {
+      return true;
+    }
+    
+    // Cashier can do viewer tasks
+    if (currentUserRole === 'cashier' && role === 'viewer') {
+      return true;
+    }
+    
+    return false;
   };
 
   const canManageUsers = (): boolean => {
-    return hasRole('admin');
+    return hasRole('admin') || hasRole('manager');
+  };
+
+  const canManageRole = (targetRole: AppRole): boolean => {
+    if (!currentUserRole) return false;
+    
+    // Admin can manage all roles
+    if (currentUserRole === 'admin') return true;
+    
+    // Manager can manage cashier and viewer roles
+    if (currentUserRole === 'manager' && (targetRole === 'cashier' || targetRole === 'viewer')) {
+      return true;
+    }
+    
+    return false;
   };
 
   useEffect(() => {
@@ -189,5 +221,6 @@ export function useUserRoles() {
     updateProfile,
     hasRole,
     canManageUsers,
+    canManageRole,
   };
 }

@@ -8,26 +8,44 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Search, Package, AlertTriangle, Calendar, BarChart3 } from 'lucide-react';
 import { MovementForm } from '@/components/inventory/MovementForm';
+import { AdvancedSearch, Product } from '@/components/inventory/AdvancedSearch';
 import { useInventory } from '@/hooks/useInventory';
 
 export default function Inventario() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showMovementForm, setShowMovementForm] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { inventory, movements, loading } = useInventory();
 
-  const filteredInventory = inventory.filter(item =>
-    item.product?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.product?.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.location?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.batch_number?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Función mejorada de filtrado que incluye todos los campos del producto
+  const filteredInventory = inventory.filter(item => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      item.product?.name.toLowerCase().includes(searchLower) ||
+      item.product?.sku?.toLowerCase().includes(searchLower) ||
+      item.product?.barcode?.toLowerCase().includes(searchLower) ||
+      item.product?.description?.toLowerCase().includes(searchLower) ||
+      item.location?.name.toLowerCase().includes(searchLower) ||
+      item.batch_number?.toLowerCase().includes(searchLower) ||
+      item.product?.categories?.name.toLowerCase().includes(searchLower)
+    );
+  });
 
-  const filteredMovements = movements.filter(movement =>
-    movement.product?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    movement.product?.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    movement.location?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    movement.movement_type.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredMovements = movements.filter(movement => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      movement.product?.name.toLowerCase().includes(searchLower) ||
+      movement.product?.sku?.toLowerCase().includes(searchLower) ||
+      movement.product?.barcode?.toLowerCase().includes(searchLower) ||
+      movement.location?.name.toLowerCase().includes(searchLower) ||
+      movement.movement_type.toLowerCase().includes(searchLower) ||
+      movement.notes?.toLowerCase().includes(searchLower)
+    );
+  });
 
   const lowStockItems = inventory.filter(item => item.available_stock <= 5);
   const expiringItems = inventory.filter(item => {
@@ -188,13 +206,18 @@ export default function Inventario() {
                   <Package className="w-5 h-5" />
                   Inventario Actual ({filteredInventory.length})
                 </CardTitle>
-                <div className="relative max-w-sm">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input
-                    placeholder="Buscar en inventario..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                <div className="max-w-md">
+                  <AdvancedSearch
+                    placeholder="Buscar en inventario por nombre, SKU, código de barras..."
+                    onSearchChange={(term, results) => {
+                      setSearchTerm(term);
+                    }}
+                    onProductSelect={(product) => {
+                      setSelectedProduct(product);
+                      setSearchTerm(product.name);
+                    }}
+                    showResults={false}
+                    className="w-full"
                   />
                 </div>
               </div>
@@ -284,13 +307,18 @@ export default function Inventario() {
                   <BarChart3 className="w-5 h-5" />
                   Kardex - Movimientos ({filteredMovements.length})
                 </CardTitle>
-                <div className="relative max-w-sm">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                  <Input
-                    placeholder="Buscar movimientos..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                <div className="max-w-md">
+                  <AdvancedSearch
+                    placeholder="Buscar movimientos por producto, SKU, código de barras..."
+                    onSearchChange={(term, results) => {
+                      setSearchTerm(term);
+                    }}
+                    onProductSelect={(product) => {
+                      setSelectedProduct(product);
+                      setSearchTerm(product.name);
+                    }}
+                    showResults={false}
+                    className="w-full"
                   />
                 </div>
               </div>

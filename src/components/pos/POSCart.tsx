@@ -32,14 +32,14 @@ export function POSCart({
 }: POSCartProps) {
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="pb-3 flex-shrink-0">
+      <CardHeader className="pb-2 flex-shrink-0">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xl">Ticket de Venta</CardTitle>
-          <Badge variant="secondary" className="text-lg px-3 py-1">{items.length} items</Badge>
+          <CardTitle className="text-lg">Ticket de Venta</CardTitle>
+          <Badge variant="secondary" className="text-sm px-2 py-1">{items.length} items</Badge>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col">
-        <div className="flex-1 overflow-y-auto space-y-3 mb-4">
+      <CardContent className="flex-1 flex flex-col p-4">
+        <div className="flex-1 overflow-y-auto space-y-2 mb-3">
           {items.length === 0 ? (
             <div className="text-center text-muted-foreground py-12">
               <div className="text-6xl opacity-20 mb-4">🛒</div>
@@ -47,11 +47,11 @@ export function POSCart({
             </div>
           ) : (
             items.map((item, index) => (
-              <div key={index} className="border rounded-lg p-4 bg-accent/10">
-                <div className="flex items-start justify-between mb-3">
+              <div key={index} className="border rounded-lg p-3 bg-accent/10">
+                <div className="flex items-start justify-between mb-2">
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-base truncate">{item.product_name}</h4>
-                    <p className="text-sm text-muted-foreground">
+                    <h4 className="font-semibold text-sm truncate">{item.product_name}</h4>
+                    <p className="text-xs text-muted-foreground">
                       ${item.unit_price.toFixed(2)} c/u
                     </p>
                   </div>
@@ -59,13 +59,13 @@ export function POSCart({
                     variant="outline"
                     size="sm"
                     onClick={() => onRemoveItem(index)}
-                    className="text-destructive hover:text-destructive-foreground hover:bg-destructive"
+                    className="text-destructive hover:text-destructive-foreground hover:bg-destructive h-7 w-7 p-0"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
                     <Label className="text-xs">Cantidad</Label>
                     <div className="flex items-center gap-1 mt-1">
@@ -73,16 +73,16 @@ export function POSCart({
                         variant="outline"
                         size="sm"
                         onClick={() => onUpdateQuantity(index, Math.max(1, item.quantity - 1))}
-                        className="h-8 w-8 p-0"
+                        className="h-7 w-7 p-0"
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
-                      <span className="w-12 text-center font-medium">{item.quantity}</span>
+                      <span className="w-10 text-center font-medium text-sm">{item.quantity}</span>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => onUpdateQuantity(index, item.quantity + 1)}
-                        className="h-8 w-8 p-0"
+                        className="h-7 w-7 p-0"
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
@@ -96,7 +96,7 @@ export function POSCart({
                         type="number"
                         value={item.discount_amount}
                         onChange={(e) => onUpdateDiscount(index, parseFloat(e.target.value) || 0)}
-                        className="h-8 text-sm"
+                        className="h-7 text-xs"
                         min="0"
                         step="0.01"
                       />
@@ -105,9 +105,9 @@ export function POSCart({
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center mt-3 pt-3 border-t">
-                  <span className="text-sm text-muted-foreground">Subtotal:</span>
-                  <span className="font-bold text-lg">${item.total_price.toFixed(2)}</span>
+                <div className="flex justify-between items-center mt-2 pt-2 border-t">
+                  <span className="text-xs text-muted-foreground">Subtotal:</span>
+                  <span className="font-bold text-sm">${item.total_price.toFixed(2)}</span>
                 </div>
               </div>
             ))
@@ -115,25 +115,25 @@ export function POSCart({
         </div>
 
         {items.length > 0 && (
-          <div className="flex-shrink-0 space-y-4">
+          <div className="flex-shrink-0 space-y-3">
             <Separator />
-            <div className="bg-muted/30 rounded-lg p-4 space-y-3">
-              <div className="flex justify-between text-base">
+            <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+              <div className="flex justify-between text-sm">
                 <span>Subtotal:</span>
                 <span className="font-medium">${subtotal.toFixed(2)}</span>
               </div>
               {discount > 0 && (
-                <div className="flex justify-between text-base text-green-600">
+                <div className="flex justify-between text-sm text-green-600">
                   <span>Descuentos:</span>
                   <span className="font-medium">-${discount.toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex justify-between text-base">
+              <div className="flex justify-between text-sm">
                 <span>IVA (16%):</span>
                 <span className="font-medium">${tax.toFixed(2)}</span>
               </div>
               <Separator />
-              <div className="flex justify-between text-xl font-bold text-primary">
+              <div className="flex justify-between text-lg font-bold text-primary">
                 <span>TOTAL:</span>
                 <span>${total.toFixed(2)}</span>
               </div>
@@ -141,8 +141,8 @@ export function POSCart({
             <Button
               variant="outline"
               onClick={onClearCart}
-              className="w-full py-3"
-              size="lg"
+              className="w-full h-8 text-sm"
+              size="sm"
             >
               Limpiar Carrito
             </Button>

@@ -4,10 +4,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Search, Package, Plus, AlertTriangle, Scan, ScanLine } from "lucide-react";
+import { Search, Package, Plus, AlertTriangle, Scan, ScanLine, Eye } from "lucide-react";
 import { useProductsWithStock, ProductWithStock } from "@/hooks/useProductsWithStock";
 import { useToast } from "@/hooks/use-toast";
 import { useDeviceDetection } from "@/hooks/useDeviceDetection";
+import { ProductDetails } from "./ProductDetails";
 
 interface ProductSearchProps {
   onAddProduct: (product: ProductWithStock) => void;
@@ -16,6 +17,8 @@ interface ProductSearchProps {
 export function ProductSearch({ onAddProduct }: ProductSearchProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState<ProductWithStock[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<ProductWithStock | null>(null);
+  const [showProductDetails, setShowProductDetails] = useState(false);
   const { products, loading } = useProductsWithStock();
   const { toast } = useToast();
   const { 
@@ -100,15 +103,36 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
     }
   };
 
-  const handleAddProduct = (product: ProductWithStock) => {
-    if (product.requires_prescription) {
+  const handleShowProductDetails = (product: ProductWithStock) => {
+    setSelectedProduct(product);
+    setShowProductDetails(true);
+  };
+
+  const handleAddToCart = (product: ProductWithStock, quantity: number) => {
+    // Find the original ProductWithStock from our products list
+    const originalProduct = products.find(p => p.id === product.id);
+    if (!originalProduct) {
       toast({
-        title: "⚠️ Producto requiere receta",
-        description: `${product.name} requiere receta médica para su venta.`,
+        title: "Error",
+        description: "No se pudo encontrar el producto en el inventario",
         variant: "destructive"
       });
+      return;
     }
-    onAddProduct(product);
+    
+    // Add the specified quantity to cart
+    for (let i = 0; i < quantity; i++) {
+      onAddProduct(originalProduct);
+    }
+  };
+
+  const handleQuickAdd = (product: ProductWithStock) => {
+    // For quick add (+ button), show details if requires prescription, otherwise add directly
+    if (product.requires_prescription) {
+      handleShowProductDetails(product);
+    } else {
+      onAddProduct(product);
+    }
   };
 
   return (
@@ -179,7 +203,11 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
               </div>
             ) : (
               filteredProducts.map((product) => (
-                <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors">
+                <div 
+                  key={product.id} 
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
+                  onClick={() => handleShowProductDetails(product)}
+                >
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-sm truncate">{product.name}</h4>
                     <div className="flex items-center gap-2 mt-1">
@@ -196,28 +224,55 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
                       } className="text-xs">
                         Stock: {product.current_stock || 0}
                       </Badge>
+                      {product.requires_prescription && (
+                        <Badge variant="destructive" className="text-xs flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" />
+                          Receta
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddProduct(product);
-                    }}
-                    disabled={(product.current_stock || 0) <= 0}
-                    className="ml-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                  {product.requires_prescription && (
-                    <AlertTriangle className="h-4 w-4 text-orange-500 ml-1" />
-                  )}
+                  <div className="flex items-center gap-2 ml-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleShowProductDetails(product);
+                      }}
+                      className="flex items-center gap-1"
+                    >
+                      <Eye className="h-3 w-3" />
+                      Ver
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleQuickAdd(product);
+                      }}
+                      disabled={(product.current_stock || 0) <= 0}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))
             )}
           </div>
         )}
       </CardContent>
+      
+      {/* Product Details Modal */}
+      <ProductDetails
+        product={selectedProduct}
+        isOpen={showProductDetails}
+        onClose={() => {
+          setShowProductDetails(false);
+          setSelectedProduct(null);
+        }}
+        onAddToCart={handleAddToCart}
+      />
     </Card>
   );
 }

@@ -29,6 +29,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useRolePermissions } from "@/components/auth/RoleProtection";
 
 // PANEL PRINCIPAL
 const dashboardItems = [
@@ -79,6 +80,7 @@ interface SidebarProps {
 export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
   const location = useLocation();
   const { signOut } = useAuth();
+  const permissions = useRolePermissions();
   const currentPath = location.pathname;
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -88,6 +90,77 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
     
     // Update CSS variable for smooth content transition
     document.documentElement.style.setProperty('--sidebar-width', newCollapsed ? '4rem' : '16rem');
+  };
+
+  // Filter menu items based on user permissions
+  const getFilteredSalesItems = () => {
+    return salesItems.filter(item => {
+      switch (item.url) {
+        case '/pos':
+          return permissions.canAccessPOS;
+        case '/caja':
+          return permissions.canManageCashRegister;
+        case '/ventas':
+          return permissions.canViewSales;
+        case '/devoluciones':
+          return permissions.canProcessReturns;
+        case '/reportes':
+          return permissions.canViewReports;
+        default:
+          return true;
+      }
+    });
+  };
+
+  const getFilteredInventoryItems = () => {
+    return inventoryItems.filter(item => {
+      switch (item.url) {
+        case '/productos':
+          return permissions.canManageProducts;
+        case '/categorias':
+          return permissions.canManageCategories;
+        case '/ubicaciones':
+          return permissions.canManageLocations;
+        case '/inventario':
+        case '/compras':
+          return permissions.canManageProducts;
+        default:
+          return true;
+      }
+    });
+  };
+
+  const getFilteredCustomerItems = () => {
+    return crmItems.filter(item => {
+      switch (item.url) {
+        case '/clientes':
+        case '/gestion-clientes':
+          return permissions.canManageCustomers;
+        case '/proveedores':
+          return permissions.canManageSuppliers;
+        case '/fidelizacion':
+        case '/campanias':
+        case '/recordatorios':
+          return permissions.canManageLoyalty;
+        default:
+          return true;
+      }
+    });
+  };
+
+  const getFilteredAdminItems = () => {
+    return adminItems.filter(item => {
+      switch (item.url) {
+        case '/usuarios':
+          return permissions.canManageUsers;
+        case '/webhooks':
+        case '/auditoria':
+        case '/configuracion':
+          return permissions.canAccessAdminPanel;
+        default:
+          return true;
+      }
+    });
   };
 
   return (
@@ -173,19 +246,21 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
                   </span>
                 </NavLink>
               ))}
-            </nav>
-          </div>
+              </nav>
+            </div>
+          )}
 
           {/* Ventas y POS */}
-          <div className="mb-6">
-            <h3 className={cn(
-              "text-xs font-semibold text-secondary uppercase tracking-wider mb-3 transition-opacity duration-200",
-              isCollapsed && "opacity-0"
-            )}>
-              Ventas y POS
-            </h3>
-            <nav className="space-y-1">
-              {salesItems.map((item) => (
+          {getFilteredSalesItems().length > 0 && (
+            <div className="mb-6">
+              <h3 className={cn(
+                "text-xs font-semibold text-secondary uppercase tracking-wider mb-3 transition-opacity duration-200",
+                isCollapsed && "opacity-0"
+              )}>
+                Ventas y POS
+              </h3>
+              <nav className="space-y-1">
+                {getFilteredSalesItems().map((item) => (
                 <NavLink
                   key={item.url}
                   to={item.url}
@@ -206,20 +281,22 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
                     {item.title}
                   </span>
                 </NavLink>
-              ))}
-            </nav>
-          </div>
+                ))}
+              </nav>
+            </div>
+          )}
 
           {/* Inventario */}
-          <div className="mb-6">
-            <h3 className={cn(
-              "text-xs font-semibold text-primary uppercase tracking-wider mb-3 transition-opacity duration-200",
-              isCollapsed && "opacity-0"
-            )}>
-              Inventario
-            </h3>
-            <nav className="space-y-1">
-              {inventoryItems.map((item) => (
+          {getFilteredInventoryItems().length > 0 && (
+            <div className="mb-6">
+              <h3 className={cn(
+                "text-xs font-semibold text-primary uppercase tracking-wider mb-3 transition-opacity duration-200",
+                isCollapsed && "opacity-0"
+              )}>
+                Inventario
+              </h3>
+              <nav className="space-y-1">
+                {getFilteredInventoryItems().map((item) => (
                 <NavLink
                   key={item.url}
                   to={item.url}
@@ -240,20 +317,22 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
                     {item.title}
                   </span>
                 </NavLink>
-              ))}
-            </nav>
-          </div>
+                ))}
+              </nav>
+            </div>
+          )}
 
           {/* Gestión y CRM */}
-          <div className="mb-6">
-            <h3 className={cn(
-              "text-xs font-semibold text-secondary uppercase tracking-wider mb-3 transition-opacity duration-200",
-              isCollapsed && "opacity-0"
-            )}>
-              Gestión y CRM
-            </h3>
-            <nav className="space-y-1">
-              {crmItems.map((item) => (
+          {getFilteredCustomerItems().length > 0 && (
+            <div className="mb-6">
+              <h3 className={cn(
+                "text-xs font-semibold text-secondary uppercase tracking-wider mb-3 transition-opacity duration-200",
+                isCollapsed && "opacity-0"
+              )}>
+                Gestión y CRM
+              </h3>
+              <nav className="space-y-1">
+                {getFilteredCustomerItems().map((item) => (
                 <NavLink
                   key={item.url}
                   to={item.url}
@@ -274,20 +353,22 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
                     {item.title}
                   </span>
                 </NavLink>
-              ))}
-            </nav>
-          </div>
+                ))}
+              </nav>
+            </div>
+          )}
 
           {/* Administración */}
-          <div className="mb-6">
-            <h3 className={cn(
-              "text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 transition-opacity duration-200",
-              isCollapsed && "opacity-0"
-            )}>
-              Administración
-            </h3>
-            <nav className="space-y-1">
-              {adminItems.map((item) => (
+          {getFilteredAdminItems().length > 0 && (
+            <div className="mb-6">
+              <h3 className={cn(
+                "text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 transition-opacity duration-200",
+                isCollapsed && "opacity-0"
+              )}>
+                Administración
+              </h3>
+              <nav className="space-y-1">
+                {getFilteredAdminItems().map((item) => (
                 <NavLink
                   key={item.url}
                   to={item.url}
@@ -308,9 +389,10 @@ export function AppSidebar({ isOpen, onToggle }: SidebarProps) {
                     {item.title}
                   </span>
                 </NavLink>
-              ))}
-            </nav>
-          </div>
+                ))}
+              </nav>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

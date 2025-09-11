@@ -9,6 +9,7 @@ import { useInventory } from '@/hooks/useInventory';
 import { useProducts } from '@/hooks/useProducts';
 import { useLocations } from '@/hooks/useLocations';
 import { useToast } from '@/hooks/use-toast';
+import { AdvancedSearch } from '@/components/inventory/AdvancedSearch';
 
 interface MovementFormProps {
   onSave?: () => void;
@@ -158,18 +159,11 @@ export function MovementForm({ onSave, onCancel }: MovementFormProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="product">Producto *</Label>
-              <Select value={formData.product_id} onValueChange={(value) => updateField('product_id', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar producto" />
-                </SelectTrigger>
-                <SelectContent>
-                  {products.map((product) => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.name} {product.sku && `(${product.sku})`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <AdvancedSearch
+                onProductSelect={(product) => updateField('product_id', product.id)}
+                placeholder="Buscar producto por nombre, SKU o código de barras..."
+                selectedProductId={formData.product_id}
+              />
             </div>
 
             <div>

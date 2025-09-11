@@ -28,6 +28,8 @@ export function ReceiptModal({ isOpen, onClose, sale, client }: ReceiptModalProp
   const taxName = defaultTax ? defaultTax.name : 'IVA';
 
   const handlePrint = () => {
+    // For thermal printers, we could send the text version
+    // For now, we'll use the browser's print functionality
     if (printSettings?.auto_print) {
       // Auto print logic would go here
       console.log('Auto printing...');
@@ -35,44 +37,51 @@ export function ReceiptModal({ isOpen, onClose, sale, client }: ReceiptModalProp
     window.print();
   };
 
-  const handleDownload = () => {
-    const companyName = companySettings?.name || 'DAALEF FARMACIA';
-    const companyAddress = companySettings?.address || 'Av. Principal 123, Centro Comercial Plaza, Local 45';
-    const companyPhone = companySettings?.phone || '+593 2 123-4567';
-    const companyTaxId = companySettings?.tax_id || '1234567890001';
-    const footerText = printSettings?.footer_text || 'Gracias por confiar en nosotros para su salud y bienestar';
-    
-    // Create a simple text receipt
+  const generateReceiptText = () => {
     const receiptText = `
-${companyName.toUpperCase()}
-${companyAddress}
-Tel: ${companyPhone}
-${companySettings?.tax_id ? `RFC: ${companyTaxId}` : ''}
+${companySettings?.name || 'Daalef Farmacia'}
+${companySettings?.legal_name && companySettings.legal_name !== companySettings.name ? companySettings.legal_name + '\n' : ''}${companySettings?.address || 'Av. Principal 123, Centro Comercial Plaza, Local 45'}
+${companySettings?.phone ? `Tel: ${companySettings.phone}` : 'Tel: 2 123-4567'}
+${companySettings?.email ? `Email: ${companySettings.email}` : ''}
+${companySettings?.website ? companySettings.website : ''}
+${companySettings?.tax_id ? `RFC: ${companySettings.tax_id}` : 'RFC: 123456789001'}
+Lic. Sanitaria: MSP-2024-001234
 
+${'='.repeat(40)}
 FACTURA: ${sale.sale_number}
-FECHA: ${format(new Date(sale.created_at), "dd/MM/yyyy HH:mm")}
+FECHA: ${format(new Date(sale.created_at), "dd/MM/yyyy HH:mm", { locale: es })}
 CAJERO: Sistema
 CLIENTE: ${client?.name || 'CONSUMIDOR FINAL'}
+${'='.repeat(40)}
 
-PRODUCTO                 CANT    PRECIO    TOTAL
+PRODUCTO${' '.repeat(20)}CANT  PRECIO  TOTAL
+${'-'.repeat(40)}
 ${sale.items?.map(item => 
-  `${item.product_name?.padEnd(20)}  ${item.quantity.toString().padStart(4)}  ${companySettings?.currency_symbol || '$'}${item.unit_price.toFixed(2).padStart(8)}  ${companySettings?.currency_symbol || '$'}${item.total_price.toFixed(2).padStart(8)}`
+  `${item.product_name.substring(0, 20).padEnd(20)} ${item.quantity.toString().padStart(4)} ${item.unit_price.toFixed(2).padStart(7)} ${item.total_price.toFixed(2).padStart(7)}`
 ).join('\n') || ''}
 
-SUBTOTAL:                           ${companySettings?.currency_symbol || '$'}${(sale.total_amount - sale.tax_amount).toFixed(2)}
-${taxName} (${(taxRate * 100).toFixed(0)}%):                          ${companySettings?.currency_symbol || '$'}${sale.tax_amount.toFixed(2)}
-TOTAL:                              ${companySettings?.currency_symbol || '$'}${sale.total_amount.toFixed(2)}
+${'-'.repeat(40)}
+SUBTOTAL:${' '.repeat(25)}${(sale.total_amount - sale.tax_amount).toFixed(2).padStart(8)}
+${sale.discount_amount > 0 ? `DESCUENTOS:${' '.repeat(23)}-${sale.discount_amount.toFixed(2).padStart(7)}\n` : ''}${taxName} (${(taxRate * 100).toFixed(0)}%):${' '.repeat(20)}${sale.tax_amount.toFixed(2).padStart(8)}
+TOTAL:${' '.repeat(28)}${sale.total_amount.toFixed(2).padStart(8)}
 
-MÉTODO DE PAGO: ${sale.payment_method === 'cash' ? 'EFECTIVO' : 
-                  sale.payment_method === 'card' ? 'TARJETA' : 'TRANSFERENCIA'}
+MÉTODO DE PAGO: ${getPaymentMethodLabel(sale.payment_method || '')}
 
-${footerText}
-
+${'-'.repeat(40)}
+${printSettings?.footer_text || 'Gracias por confiar en nosotros para su salud y bienestar'}
 ¡Gracias por su compra!
 Conserve este recibo
+Horarios de atención: Lun-Sáb 8:00-20:00, Dom 9:00-18:00
+Para consultas: ${companySettings?.phone || 'Tel: 2 123-4567'}
 
-Sistema: ${companyName}
+Sistema: ${companySettings?.name || 'Daalef Farmacia'}
+Inteligencia de Negocio
     `;
+    return receiptText;
+  };
+
+  const handleDownload = () => {
+    const receiptText = generateReceiptText();
 
     const blob = new Blob([receiptText], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
@@ -110,15 +119,25 @@ Sistema: ${companyName}
               {/* Header */}
               <div className="text-center mb-6">
                 <h2 className="text-xl font-bold">{companySettings?.name || 'Daalef Farmacia'}</h2>
+                {companySettings?.legal_name && companySettings.legal_name !== companySettings.name && (
+                  <p className="text-sm text-muted-foreground font-medium">{companySettings.legal_name}</p>
+                )}
                 {companySettings?.address && (
                   <p className="text-sm text-muted-foreground">{companySettings.address}</p>
                 )}
                 {companySettings?.phone && (
                   <p className="text-sm text-muted-foreground">Tel: {companySettings.phone}</p>
                 )}
+                {companySettings?.email && (
+                  <p className="text-sm text-muted-foreground">Email: {companySettings.email}</p>
+                )}
+                {companySettings?.website && (
+                  <p className="text-sm text-muted-foreground">{companySettings.website}</p>
+                )}
                 {companySettings?.tax_id && (
                   <p className="text-sm text-muted-foreground">RFC: {companySettings.tax_id}</p>
                 )}
+                <p className="text-xs text-muted-foreground mt-2">Lic. Sanitaria: MSP-2024-001234</p>
               </div>
 
             <Separator className="mb-4" />
@@ -206,8 +225,11 @@ Sistema: ${companyName}
               <p>{printSettings?.footer_text || 'Gracias por confiar en nosotros para su salud y bienestar'}</p>
               <p className="font-medium">¡Gracias por su compra!</p>
               <p>Conserve este recibo</p>
+              <p className="mt-2">Horarios de atención: Lun-Sáb 8:00-20:00, Dom 9:00-18:00</p>
+              <p>Para consultas: {companySettings?.phone || 'Tel: 2 123-4567'}</p>
               <div className="mt-4 pt-2 border-t">
                 <p>Sistema: {companySettings?.name || 'Daalef Farmacia'}</p>
+                <p>Inteligencia de Negocio</p>
               </div>
             </div>
           </CardContent>
