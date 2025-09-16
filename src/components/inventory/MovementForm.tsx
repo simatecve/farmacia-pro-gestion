@@ -72,7 +72,7 @@ export function MovementForm({ onSave, onCancel }: MovementFormProps) {
           newStock = currentStock - Math.abs(formData.quantity);
           break;
         case 'ajuste':
-          newStock = Math.abs(formData.quantity);
+          newStock = Math.abs(formData.quantity); // ✅ Esto sobrescribe el stock actual
           break;
         case 'transferencia':
           // Para transferencias se manejará en el futuro con más lógica
@@ -94,7 +94,9 @@ export function MovementForm({ onSave, onCancel }: MovementFormProps) {
         product_id: formData.product_id,
         location_id: formData.location_id,
         movement_type: formData.movement_type,
-        quantity: formData.movement_type === 'salida' || formData.movement_type === 'venta' ? 
+        quantity: formData.movement_type === 'ajuste' ? 
+                  (Math.abs(formData.quantity) - currentStock) : // Para ajustes, mostrar la diferencia real
+                  formData.movement_type === 'salida' || formData.movement_type === 'venta' ? 
                   -Math.abs(formData.quantity) : Math.abs(formData.quantity),
         unit_cost: formData.unit_cost ? parseFloat(formData.unit_cost) : null,
         total_cost: formData.unit_cost ? parseFloat(formData.unit_cost) * Math.abs(formData.quantity) : null,
@@ -226,16 +228,23 @@ export function MovementForm({ onSave, onCancel }: MovementFormProps) {
             </div>
 
             <div>
-              <Label htmlFor="quantity">Cantidad *</Label>
+              <Label htmlFor="quantity">
+                {formData.movement_type === 'ajuste' ? 'Stock Real Actual *' : 'Cantidad *'}
+              </Label>
               <Input
                 id="quantity"
                 type="number"
-                min="1"
+                min={formData.movement_type === 'ajuste' ? "0" : "1"}
                 value={formData.quantity}
                 onChange={(e) => updateField('quantity', parseInt(e.target.value) || 0)}
-                placeholder="Cantidad"
+                placeholder={formData.movement_type === 'ajuste' ? 'Stock real actual' : 'Cantidad'}
                 required
               />
+              {formData.movement_type === 'ajuste' && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  💡 Ingresa el stock real actual. El sistema calculará automáticamente la diferencia.
+                </p>
+              )}
             </div>
 
             <div>

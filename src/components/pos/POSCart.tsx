@@ -4,13 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, Minus, Percent } from "lucide-react";
+import { Trash2, Plus, Minus, Percent, DollarSign, Package } from "lucide-react";
 import { SaleItem } from "@/hooks/useSales";
 
 interface POSCartProps {
   items: SaleItem[];
   onUpdateQuantity: (index: number, quantity: number) => void;
   onUpdateDiscount: (index: number, discount: number) => void;
+  onUpdatePrice: (index: number, price: number) => void;
   onRemoveItem: (index: number) => void;
   onClearCart: () => void;
   subtotal: number;
@@ -21,7 +22,7 @@ interface POSCartProps {
   taxName?: string;
 }
 
-export function POSCart({ items, onUpdateQuantity, onUpdateDiscount, onRemoveItem, onClearCart, subtotal, discount, tax, total, taxRate = 0.16, taxName = 'IVA' }: POSCartProps) {
+export function POSCart({ items, onUpdateQuantity, onUpdateDiscount, onUpdatePrice, onRemoveItem, onClearCart, subtotal, discount, tax, total, taxRate = 0.16, taxName = 'IVA' }: POSCartProps) {
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-2 flex-shrink-0">
@@ -40,14 +41,56 @@ export function POSCart({ items, onUpdateQuantity, onUpdateDiscount, onRemoveIte
           ) : (
             items.map((item, index) => (
               <div key={index} className="border rounded-lg p-4 bg-white shadow-sm border-gray-200">
-                {/* Header con nombre del producto */}
+                {/* Header con imagen y nombre del producto */}
                 <div className="mb-3">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-base truncate text-gray-900">{item.product_name}</h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      ${item.unit_price.toFixed(2)} por unidad
-                    </p>
+                  <div className="flex items-center gap-3">
+                    {/* Product Image */}
+                    <div className="flex-shrink-0">
+                      {item.product_image_url ? (
+                        <img 
+                          src={item.product_image_url} 
+                          alt={item.product_name}
+                          className="w-12 h-12 object-cover rounded-md border"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                            target.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-12 h-12 bg-muted rounded-md border flex items-center justify-center ${item.product_image_url ? 'hidden' : ''}`}>
+                        <Package className="h-6 w-6 text-muted-foreground" />
+                      </div>
+                    </div>
+                    
+                    {/* Product Info */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-base truncate text-gray-900">{item.product_name}</h4>
+                      <p className="text-sm text-gray-600 mt-1">
+                        ${item.unit_price.toFixed(2)} por unidad
+                      </p>
+                    </div>
                   </div>
+                </div>
+
+                {/* Edición de precio unitario */}
+                <div className="mb-3 p-2 bg-blue-50 rounded-lg border border-blue-200">
+                  <Label className="text-xs font-medium text-blue-700 flex items-center gap-1 mb-1">
+                    <DollarSign className="h-3 w-3" />
+                    Precio para esta venta
+                  </Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={item.unit_price}
+                    onChange={(e) => {
+                      const newPrice = Math.max(0, parseFloat(e.target.value) || 0);
+                      onUpdatePrice(index, newPrice);
+                    }}
+                    className="h-8 text-sm font-medium border-blue-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    title="Editar precio unitario para esta venta únicamente"
+                  />
                 </div>
                 
                 {/* Control de cantidad y botón eliminar */}

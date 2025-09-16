@@ -1,200 +1,143 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Search, X, Package, Barcode, Scan } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, Scan, X, Package, Barcode } from 'lucide-react';
-import { useBarcodeScanner, BarcodeResult } from '@/hooks/useBarcodeScanner';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Product } from '@/hooks/useProducts';
+import { useProducts } from '@/hooks/useProducts';
+import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
 
-export interface Product {
-  id: string;
-  name: string;
-  sku: string;
-  barcode?: string;
-  sale_price: number;
-  description?: string;
-  category?: {
-    id: string;
-    name: string;
-  };
-}
-
-export interface AdvancedSearchProps {
-  onProductSelect?: (product: Product) => void;
-  onSearchChange?: (searchTerm: string, results: Product[]) => void;
+interface AdvancedSearchProps {
+  onProductSelect: (product: Product) => void;
+  onSearchChange?: (term: string, results: Product[]) => void;
   placeholder?: string;
-  showResults?: boolean;
-  maxResults?: number;
   className?: string;
-  selectedProductId?: string;
-  value?: string;
+  disabled?: boolean;
+  autoFocus?: boolean;
 }
 
 export function AdvancedSearch({
   onProductSelect,
   onSearchChange,
-  placeholder = "Buscar producto por nombre, SKU, código de barras...",
-  showResults = true,
-  maxResults = 10,
+  placeholder = "Buscar productos por nombre, código o laboratorio...",
   className = "",
-  selectedProductId,
-  value
+  disabled = false,
+  autoFocus = false
 }: AdvancedSearchProps) {
-  const [searchTerm, setSearchTerm] = useState(value || '');
+  const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [showBarcodeIndicator, setShowBarcodeIndicator] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const { toast } = useToast();
+  const [showBarcodeIndicator, setShowBarcodeIndicator] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Hook para obtener productos
+  const { products } = useProducts();
 
-  // Configurar scanner de código de barras
-  const { isScanning, lastScannedCode, buffer } = useBarcodeScanner({
-    onScan: handleBarcodeScanned,
-    onError: (error) => {
-      toast.error(`Error de código de barras: ${error}`);
+  // Hook para escáner de código de barras
+  const {
+    isScanning,
+    lastScannedCode,
+    buffer,
+    scanBarcode,
+    clearBuffer
+  } = useBarcodeScanner({
+    onScan: (result) => {
+      setSearchTerm(result.code);
+      setShowBarcodeIndicator(true);
+      performSearch(result.code);
+      
+      // Ocultar indicador después de 3 segundos
+      setTimeout(() => {
+        setShowBarcodeIndicator(false);
+      }, 3000);
     },
-    minLength: 6,
-    maxLength: 25,
-    timeout: 150
+    minLength: 8,
+    timeout: 500
   });
 
-  // Manejar código de barras escaneado
-  async function handleBarcodeScanned(result: BarcodeResult) {
-    setShowBarcodeIndicator(true);
-    
-    if (result.found && result.product) {
-      setSearchTerm(result.code);
-      setSearchResults([result.product as Product]);
-      onProductSelect?.(result.product as Product);
-      toast.success(`Producto encontrado: ${result.product.name}`);
-    } else {
-      setSearchTerm(result.code);
-      toast.warning(`No se encontró producto con código: ${result.code}`);
-      // Buscar manualmente por si acaso
-      await performSearch(result.code);
-    }
-    
-    setTimeout(() => setShowBarcodeIndicator(false), 2000);
-  }
-
-  // Realizar búsqueda en la base de datos
+  // Función de búsqueda
   const performSearch = useCallback(async (term: string) => {
     if (!term.trim()) {
       setSearchResults([]);
-      onSearchChange?.(term, []);
+      setShowResults(false);
+      onSearchChange?.('', []);
       return;
     }
 
     setIsSearching(true);
-    
     try {
-      const { data: products, error } = await supabase
-        .from('products')
-        .select(`
-          id,
-          name,
-          sku,
-          barcode,
-          sale_price,
-          description,
-          category:categories (
-            id,
-            name
-          )
-        `)
-        .or(`name.ilike.%${term}%,sku.ilike.%${term}%,barcode.ilike.%${term}%,description.ilike.%${term}%`)
-        .limit(maxResults);
-
-      if (error) {
-        throw error;
-      }
-
-      const formattedProducts: Product[] = (products || []).map(product => ({
-        id: product.id,
-        name: product.name,
-        sku: product.sku,
-        barcode: product.barcode,
-        sale_price: product.sale_price,
-        description: product.description,
-        category: product.category ? {
-          id: product.category.id,
-          name: product.category.name
-        } : undefined
-      }));
-
-      setSearchResults(formattedProducts);
-      setSelectedIndex(-1);
-      onSearchChange?.(term, formattedProducts);
+      const searchLower = term.toLowerCase();
+      const results = products.filter(product => {
+        return (
+          product.name.toLowerCase().includes(searchLower) ||
+          product.sku?.toLowerCase().includes(searchLower) ||
+          product.barcode?.toLowerCase().includes(searchLower) ||
+          product.code?.toLowerCase().includes(searchLower) ||
+          product.laboratory?.toLowerCase().includes(searchLower)
+        );
+      }).slice(0, 10); // Limitar a 10 resultados
       
+      setSearchResults(results);
+      setShowResults(results.length > 0);
+      setSelectedIndex(-1);
+      onSearchChange?.(term, results);
     } catch (error) {
       console.error('Error searching products:', error);
-      toast({
-        title: "Error",
-        description: "Error al buscar productos",
-        variant: "destructive"
-      });
       setSearchResults([]);
-      onSearchChange?.(term, []);
+      setShowResults(false);
     } finally {
       setIsSearching(false);
     }
-  }, [maxResults, onSearchChange]);
+  }, [products, onSearchChange]);
 
-  // Cargar producto seleccionado
-  useEffect(() => {
-    if (selectedProductId && !searchTerm) {
-      const loadSelectedProduct = async () => {
-        try {
-          const { data: product, error } = await supabase
-            .from('products')
-            .select(`
-              id,
-              name,
-              sku,
-              barcode,
-              sale_price,
-              description,
-              category:categories (
-                id,
-                name
-              )
-            `)
-            .eq('id', selectedProductId)
-            .single();
-
-          if (error) throw error;
-
-          if (product) {
-            setSearchTerm(product.name);
-          }
-        } catch (error) {
-          console.error('Error loading selected product:', error);
-        }
-      };
-
-      loadSelectedProduct();
+  // Búsqueda con debounce
+  const debouncedSearch = useCallback((term: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
-  }, [selectedProductId]);
-
-  // Sincronizar con valor externo
-  useEffect(() => {
-    if (value !== undefined && value !== searchTerm) {
-      setSearchTerm(value);
-    }
-  }, [value]);
-
-  // Debounce para la búsqueda
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      performSearch(searchTerm);
+    
+    searchTimeoutRef.current = setTimeout(() => {
+      performSearch(term);
     }, 300);
+  }, [performSearch]);
 
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm, performSearch]);
+  // Limpiar timeout al desmontar
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
 
-  // Manejar teclas de navegación
+  // Auto focus
+  useEffect(() => {
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [autoFocus]);
+
+  // Iniciar escáner automáticamente
+  useEffect(() => {
+    // El escáner se inicia automáticamente con el hook
+    return () => clearBuffer();
+  }, [clearBuffer]);
+
+  // Manejar selección de producto
+  const handleProductSelect = (product: Product) => {
+    onProductSelect(product);
+    setSearchTerm('');
+    setSearchResults([]);
+    setShowResults(false);
+    setSelectedIndex(-1);
+    setShowBarcodeIndicator(false);
+  };
+
+  // Manejar navegación con teclado
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!showResults || searchResults.length === 0) return;
 
@@ -202,12 +145,14 @@ export function AdvancedSearch({
       case 'ArrowDown':
         e.preventDefault();
         setSelectedIndex(prev => 
-          prev < searchResults.length - 1 ? prev + 1 : prev
+          prev < searchResults.length - 1 ? prev + 1 : 0
         );
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+        setSelectedIndex(prev => 
+          prev > 0 ? prev - 1 : searchResults.length - 1
+        );
         break;
       case 'Enter':
         e.preventDefault();
@@ -216,18 +161,23 @@ export function AdvancedSearch({
         }
         break;
       case 'Escape':
-        setSearchResults([]);
+        setShowResults(false);
         setSelectedIndex(-1);
         break;
     }
   };
 
-  // Manejar selección de producto
-  const handleProductSelect = (product: Product) => {
-    onProductSelect?.(product);
-    setSearchTerm(product.name);
-    setSearchResults([]);
-    setSelectedIndex(-1);
+  // Manejar cambio en el input
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    if (value.trim()) {
+      debouncedSearch(value);
+    } else {
+      setSearchResults([]);
+      setShowResults(false);
+    }
   };
 
   // Limpiar búsqueda
@@ -241,49 +191,56 @@ export function AdvancedSearch({
   return (
     <div className={`relative ${className}`}>
       <div className="relative">
-        <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-          <Search className="w-4 h-4 text-muted-foreground" />
-          {(isScanning || showBarcodeIndicator) && (
-            <div className="flex items-center gap-1">
-              <Scan className="w-4 h-4 text-blue-500 animate-pulse" />
-              <Badge variant="outline" className="text-xs">
-                {isScanning ? 'Escaneando...' : 'Código detectado'}
-              </Badge>
-            </div>
-          )}
-          {buffer && (
-            <Badge variant="secondary" className="text-xs">
-              <Barcode className="w-3 h-3 mr-1" />
-              {buffer}
-            </Badge>
-          )}
-        </div>
-        
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
         <Input
+          ref={inputRef}
           type="text"
           placeholder={placeholder}
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          className="pl-12 pr-10"
+          disabled={disabled}
+          className={`pl-10 pr-20 ${showBarcodeIndicator ? 'ring-2 ring-green-500' : ''}`}
         />
-        
-        {searchTerm && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearSearch}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        )}
-        
-        {isSearching && (
-          <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
+        <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+          {showBarcodeIndicator && (
+            <Badge variant="default" className="bg-green-500 text-white animate-pulse">
+              <Barcode className="h-3 w-3 mr-1" />
+              Escaneado
+            </Badge>
+          )}
+          {isScanning && (
+            <Badge variant="secondary" className="animate-pulse">
+              <Scan className="h-3 w-3 mr-1" />
+              Escaneando...
+            </Badge>
+          )}
+          {buffer && (
+            <Badge variant="outline" className="text-xs">
+              {buffer}
+            </Badge>
+          )}
+          {isSearching && (
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-          </div>
-        )}
+          )}
+          {searchTerm && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={clearSearch}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+      </div>
+      
+      {/* Instrucciones de uso */}
+      <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
+        <Scan className="h-3 w-3" />
+        Escanea un código de barras o escribe para buscar
       </div>
 
       {/* Resultados de búsqueda */}
@@ -304,19 +261,18 @@ export function AdvancedSearch({
                       <Package className="w-4 h-4 text-muted-foreground" />
                       <span className="font-medium">{product.name}</span>
                     </div>
-                    <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                      <span>SKU: {product.sku}</span>
-                      {product.barcode && (
-                        <span className="flex items-center gap-1">
-                          <Barcode className="w-3 h-3" />
-                          {product.barcode}
+                    <div className="flex items-center gap-4 mt-1">
+                      <span className="text-sm text-muted-foreground">
+                        Código: {product.code}
+                      </span>
+                      {product.laboratory && (
+                        <span className="text-sm text-muted-foreground">
+                          Lab: {product.laboratory}
                         </span>
                       )}
-                      {product.category && (
-                        <Badge variant="outline" className="text-xs">
-                          {product.category.name}
-                        </Badge>
-                      )}
+                      <span className="text-sm text-muted-foreground">
+                        Stock: {product.current_stock}
+                      </span>
                     </div>
                     {product.description && (
                       <p className="text-xs text-muted-foreground mt-1 truncate">

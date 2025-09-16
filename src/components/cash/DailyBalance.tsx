@@ -21,6 +21,9 @@ interface DailyBalanceData {
   totalCard: number;
   totalOther: number;
   totalDifference: number;
+  realBalance: number;
+  theoreticalBalance: number;
+  expectedAmount: number;
   sessions: CashRegisterSession[];
 }
 
@@ -31,7 +34,8 @@ export function DailyBalance() {
   const [showDetails, setShowDetails] = useState(false);
 
   const calculateDailyBalance = (date: string) => {
-    const targetDate = new Date(date);
+    // Usar la fecha local del dispositivo para evitar problemas de zona horaria
+    const targetDate = new Date(date + 'T00:00:00');
     const dayStart = startOfDay(targetDate);
     const dayEnd = endOfDay(targetDate);
 
@@ -39,29 +43,84 @@ export function DailyBalance() {
     console.log('Debug - Rango de fecha:', { dayStart, dayEnd });
     console.log('Debug - Total sesiones disponibles:', sessions.length);
     
+    // Filtrar sesiones por fecha de apertura O cierre usando zona horaria local
     const daySessions = sessions.filter(session => {
-      const sessionDate = new Date(session.opened_at);
-      const isInRange = sessionDate >= dayStart && sessionDate <= dayEnd;
+      // Convertir las fechas del servidor a fecha local para comparación
+      const openedDate = new Date(session.opened_at);
+      const closedDate = session.closed_at ? new Date(session.closed_at) : null;
+      
+      // Comparar solo las fechas (año, mes, día) ignorando la hora
+      const openedDateStr = format(openedDate, 'yyyy-MM-dd');
+      const closedDateStr = closedDate ? format(closedDate, 'yyyy-MM-dd') : null;
+      const targetDateStr = date;
+      
+      // Incluir sesión si fue abierta en el día O cerrada en el día
+      const openedInDay = openedDateStr === targetDateStr;
+      const closedInDay = closedDateStr === targetDateStr;
+      
+      const isInRange = openedInDay || closedInDay;
+      
       console.log('Debug - Sesión:', {
         id: session.id,
         opened_at: session.opened_at,
-        sessionDate,
+        closed_at: session.closed_at,
+        openedDateStr,
+        closedDateStr,
+        targetDateStr,
+        openedInDay,
+        closedInDay,
         isInRange
       });
+      
       return isInRange;
     });
     
     console.log('Debug - Sesiones filtradas para el día:', daySessions.length);
+    console.log('Debug - Sesiones del día:', daySessions.map(s => ({
+      id: s.id.slice(-6),
+      register: s.register_name,
+      opening: s.opening_amount,
+      closing: s.closing_amount,
+      sales: s.total_sales,
+      cash: s.total_cash,
+      status: s.status
+    })));
 
-    const totalOpeningAmount = daySessions.reduce((sum, session) => sum + session.opening_amount, 0);
-    const totalClosingAmount = daySessions.reduce((sum, session) => sum + (session.closing_amount || 0), 0);
+    const totalOpeningAmount = daySessions.reduce((sum, session) => {
+      console.log(`Sumando apertura: ${sum} + ${session.opening_amount} = ${sum + session.opening_amount}`);
+      return sum + session.opening_amount;
+    }, 0);
+    
+    const totalClosingAmount = daySessions.reduce((sum, session) => {
+      const closingAmount = session.closing_amount || 0;
+      console.log(`Sumando cierre: ${sum} + ${closingAmount} = ${sum + closingAmount}`);
+      return sum + closingAmount;
+    }, 0);
+    
     const totalSales = daySessions.reduce((sum, session) => sum + session.total_sales, 0);
     const totalCash = daySessions.reduce((sum, session) => sum + session.total_cash, 0);
     const totalCard = daySessions.reduce((sum, session) => sum + session.total_card, 0);
     const totalOther = daySessions.reduce((sum, session) => sum + session.total_other, 0);
     
+    // El monto esperado debe ser: apertura + efectivo recibido en ventas
+    // La diferencia es: lo que realmente se cerró vs lo que debería haber
     const expectedAmount = totalOpeningAmount + totalCash;
     const totalDifference = totalClosingAmount - expectedAmount;
+    
+    // Calcular también el balance real (diferencia entre cierre y apertura)
+    const realBalance = totalClosingAmount - totalOpeningAmount;
+    const theoreticalBalance = totalCash; // Solo el efectivo debería quedar en caja
+
+    console.log('Debug - Totales calculados:', {
+      totalOpeningAmount,
+      totalClosingAmount,
+      totalSales,
+      totalCash,
+      expectedAmount,
+      totalDifference,
+      realBalance,
+      theoreticalBalance
+    });
 
     return {
       date,
@@ -73,12 +132,32 @@ export function DailyBalance() {
       totalCard,
       totalOther,
       totalDifference,
+      realBalance,
+      theoreticalBalance,
+      expectedAmount,
       sessions: daySessions
     };
   };
 
   useEffect(() => {
+    console.log('=== INICIO DEBUG DAILY BALANCE ===');
+    console.log('Fecha seleccionada:', selectedDate);
+    console.log('Total sesiones disponibles:', sessions.length);
+    console.log('Sesiones completas:', sessions.map(s => ({
+      id: s.id.slice(-6),
+      register: s.register_name,
+      opened_at: s.opened_at,
+      closed_at: s.closed_at,
+      status: s.status,
+      opening_amount: s.opening_amount,
+      closing_amount: s.closing_amount,
+      total_sales: s.total_sales,
+      total_cash: s.total_cash
+    })));
+    
     const balance = calculateDailyBalance(selectedDate);
+    console.log('Balance calculado:', balance);
+    console.log('=== FIN DEBUG DAILY BALANCE ===');
     setBalanceData(balance);
   }, [selectedDate, sessions]);
 
@@ -89,7 +168,7 @@ export function DailyBalance() {
     
     const printContent = `
       BALANCE DIARIO DE CAJA\n
-      Fecha: ${format(new Date(selectedDate), 'dd/MM/yyyy', { locale: es })}\n
+      Fecha: ${format(new Date(selectedDate + 'T00:00:00'), 'dd/MM/yyyy', { locale: es })}\n
       RESUMEN GENERAL:\n
       Total de Sesiones: ${balanceData.totalSessions}\n
       Monto de Apertura Total: $${balanceData.totalOpeningAmount.toFixed(2)}\n
@@ -131,6 +210,39 @@ export function DailyBalance() {
     return <div>Cargando balance...</div>;
   }
 
+  // Mostrar mensaje si no hay sesiones
+  if (balanceData.totalSessions === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Balance Diario de Caja</h2>
+            <p className="text-muted-foreground">Arqueo consolidado de todas las sesiones del día</p>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="w-40"
+            />
+          </div>
+        </div>
+        
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <CalendarDays className="w-16 h-16 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No hay sesiones para esta fecha</h3>
+            <p className="text-muted-foreground text-center">
+              No se encontraron sesiones de caja para el día {format(new Date(selectedDate + 'T00:00:00'), 'dd/MM/yyyy', { locale: es })}.
+              <br />Selecciona otra fecha o verifica que haya sesiones registradas.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -153,7 +265,7 @@ export function DailyBalance() {
       </div>
 
       {/* Resumen General */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -163,6 +275,18 @@ export function DailyBalance() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{balanceData.totalSessions}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-green-600" />
+              Apertura Total
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">${balanceData.totalOpeningAmount.toFixed(2)}</div>
           </CardContent>
         </Card>
 
@@ -181,12 +305,12 @@ export function DailyBalance() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Calculator className="w-4 h-4" />
+              <Calculator className="w-4 h-4 text-blue-600" />
               Cierre Total
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${balanceData.totalClosingAmount.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-blue-600">${balanceData.totalClosingAmount.toFixed(2)}</div>
           </CardContent>
         </Card>
 

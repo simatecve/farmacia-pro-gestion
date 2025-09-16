@@ -130,13 +130,18 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
 
   const handlePostSaleActions = async () => {
     try {
-      // 1. Imprimir ticket automáticamente
+      let actionsCompleted = [];
+      
+      // 1. Imprimir ticket automáticamente con configuración mejorada
       if (printers.length > 0) {
         const receiptData = {
-          companyName: 'FARMACIA PRO',
-          address: 'Dirección de la farmacia',
-          phone: 'Teléfono de contacto',
+          companyName: 'QUINGA SANCHEZ JOHN WILFRIDO',
+          companyRuc: '1709738635001',
+          address: 'PICHINCHA / QUITO / LA MAGDALENA / OE 7B OE7-42',
+          phone: '0983928198',
+          email: 'jhonquingadr1@gmail.com',
           ticketNumber: `TKT-${Date.now()}`,
+          cashierName: 'Sistema', // Se puede obtener del usuario actual
           items: items.map(item => ({
             name: item.product_name,
             quantity: item.quantity,
@@ -146,33 +151,75 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
           subtotal,
           discount,
           total,
-          paymentMethod,
+          paymentMethod: getPaymentMethodLabel(paymentMethod),
           cashReceived: paymentMethod === 'cash' ? cashReceived : undefined,
           changeAmount: paymentMethod === 'cash' ? changeAmount : undefined,
           clientName: selectedClient?.name
         };
-
+    
+        // Imprimir automáticamente sin mostrar diálogo
         const success = await printReceipt(JSON.stringify(receiptData), printers[0].vendorId.toString());
         if (success) {
+          actionsCompleted.push("Ticket impreso automáticamente");
+        } else {
           toast({
-            title: "Ticket impreso",
-            description: "El ticket se ha impreso correctamente",
+            title: "Error de impresión",
+            description: "No se pudo imprimir el ticket automáticamente",
+            variant: "destructive",
+            duration: 3000
           });
         }
+      } else {
+        // Sin impresora conectada - informar al usuario
+        actionsCompleted.push("Venta registrada (sin impresora conectada)");
       }
-
+    
       // 2. Abrir gaveta de dinero para pagos en efectivo
       if (paymentMethod === 'cash' && cashDrawers.length > 0) {
         const success = await openCashDrawer(cashDrawers[0].vendorId.toString());
         if (success) {
-          toast({
-            title: "Gaveta abierta",
-            description: "La gaveta de dinero se ha abierto automáticamente",
-          });
+          actionsCompleted.push("Gaveta abierta automáticamente");
         }
+      } else if (paymentMethod === 'cash' && cashDrawers.length === 0) {
+        // Pago en efectivo sin gaveta - recordatorio manual
+        actionsCompleted.push("Pago en efectivo registrado (abrir gaveta manualmente)");
       }
+    
+      // 3. Mostrar confirmación consolidada de todas las acciones
+      if (actionsCompleted.length > 0) {
+        toast({
+          title: "✅ Venta completada exitosamente",
+          description: actionsCompleted.join(" • "),
+          duration: 4000
+        });
+      }
+    
+      // 4. Si no hay periféricos, mostrar opción de imprimir manualmente
+      if (printers.length === 0) {
+        toast({
+          title: "💡 Sugerencia",
+          description: "Puedes imprimir el ticket desde el historial de ventas si conectas una impresora",
+          duration: 5000
+        });
+      }
+    
     } catch (error) {
       console.error('Error en acciones post-venta:', error);
+      toast({
+        title: "⚠️ Venta completada con advertencias",
+        description: "La venta se registró correctamente, pero ocurrió un error en las acciones automáticas",
+        variant: "destructive",
+        duration: 4000
+      });
+    }
+  };
+
+  const getPaymentMethodLabel = (method: string) => {
+    switch (method) {
+      case 'cash': return 'EFECTIVO';
+      case 'card': return 'TARJETA';
+      case 'transfer': return 'TRANSFERENCIA';
+      default: return method?.toUpperCase();
     }
   };
 

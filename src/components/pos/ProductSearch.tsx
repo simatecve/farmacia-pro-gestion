@@ -63,18 +63,20 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
   }, []);
 
   const handleBarcodeSearch = (barcode: string) => {
+    // Primero actualizar el término de búsqueda para mostrar el producto en el filtro
+    setSearchTerm(barcode);
+    
     const product = products.find(p => p.barcode === barcode);
     if (product) {
-      onAddProduct(product);
-      // Actualizar el término de búsqueda para mostrar el producto en el filtro
-      setSearchTerm(barcode);
-      toast({
-        title: "Producto agregado",
-        description: `${product.name} agregado al carrito`,
-      });
+      // Pequeño delay para que se vea el producto en el filtro antes de agregarlo
+      setTimeout(() => {
+        onAddProduct(product);
+        toast({
+          title: "Producto agregado",
+          description: `${product.name} agregado al carrito`,
+        });
+      }, 300);
     } else {
-      // Si no se encuentra el producto, mostrar el código en el buscador
-      setSearchTerm(barcode);
       toast({
         title: "Producto no encontrado",
         description: `No se encontró producto con código: ${barcode}`,

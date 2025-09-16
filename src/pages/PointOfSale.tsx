@@ -52,6 +52,7 @@ export default function PointOfSale() {
       const newItem: SaleItem = {
         product_id: product.id,
         product_name: product.name,
+        product_image_url: product.image_url,
         quantity: 1,
         unit_price: product.sale_price,
         discount_amount: 0,
@@ -78,6 +79,13 @@ export default function PointOfSale() {
     const updatedItems = [...cartItems];
     updatedItems[index].discount_amount = discount;
     updatedItems[index].total_price = (updatedItems[index].quantity * updatedItems[index].unit_price) - discount;
+    setCartItems(updatedItems);
+  };
+
+  const updatePrice = (index: number, price: number) => {
+    const updatedItems = [...cartItems];
+    updatedItems[index].unit_price = price;
+    updatedItems[index].total_price = (updatedItems[index].quantity * price) - updatedItems[index].discount_amount;
     setCartItems(updatedItems);
   };
 
@@ -228,6 +236,7 @@ export default function PointOfSale() {
                 items={cartItems}
                 onUpdateQuantity={updateQuantity}
                 onUpdateDiscount={updateDiscount}
+                onUpdatePrice={updatePrice}
                 onRemoveItem={removeItem}
                 onClearCart={clearCart}
                 subtotal={subtotal}

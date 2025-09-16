@@ -11,6 +11,7 @@ export interface ProductWithStock {
   unit_type: string;
   requires_prescription: boolean;
   active: boolean;
+  image_url?: string;
   category?: {
     id: string;
     name: string;
@@ -88,6 +89,7 @@ export function useProductsWithStock() {
         unit_type: product.unit_type,
         requires_prescription: product.requires_prescription,
         active: product.active,
+        image_url: product.image_url,
         current_stock: stockMap.get(product.id) || 0,
         locations: locationsMap.get(product.id) || [],
         category: product.categories ? {
