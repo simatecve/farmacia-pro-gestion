@@ -23,6 +23,7 @@ export interface Product {
   requires_prescription: boolean;
   active: boolean;
   location_id: string | null;
+  tax_id: string | null;
   created_at: string;
   updated_at: string;
   category?: {
@@ -76,6 +77,7 @@ export function useProducts() {
         requires_prescription: item.requires_prescription,
         active: item.active,
         location_id: (item as any).location_id ?? null,
+        tax_id: item.tax_id ?? null,
         created_at: item.created_at,
         updated_at: item.updated_at,
         // Add the related data
@@ -130,6 +132,7 @@ export function useProducts() {
         requires_prescription: data.requires_prescription,
         active: data.active,
         location_id: (data as any).location_id ?? null,
+        tax_id: data.tax_id ?? null,
         created_at: data.created_at,
         updated_at: data.updated_at,
         // Add the related data
@@ -184,6 +187,7 @@ export function useProducts() {
         requires_prescription: data.requires_prescription,
         active: data.active,
         location_id: (data as any).location_id ?? null,
+        tax_id: data.tax_id ?? null,
         created_at: data.created_at,
         updated_at: data.updated_at,
         // Add the related data

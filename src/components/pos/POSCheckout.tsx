@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, DollarSign, Smartphone, User, UserPlus, Percent, Printer, DollarSign as CashDrawer } from "lucide-react";
+import { CreditCard, DollarSign, Smartphone, User, UserPlus, Percent, Printer, DollarSign as CashDrawer, Zap } from "lucide-react";
 import { SaleItem } from "@/hooks/useSales";
 import { useClients } from "@/hooks/useClients";
 import { ClientSearch } from "./ClientSearch";
@@ -219,6 +219,7 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
       case 'cash': return 'EFECTIVO';
       case 'card': return 'TARJETA';
       case 'transfer': return 'TRANSFERENCIA';
+      case 'instant_transfer': return 'DE UNA - TRANSFERENCIA';
       default: return method?.toUpperCase();
     }
   };
@@ -226,7 +227,8 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
   const paymentMethods = [
     { value: "cash", label: "Efectivo", icon: DollarSign, color: "text-green-600" },
     { value: "card", label: "Tarjeta", icon: CreditCard, color: "text-blue-600" },
-    { value: "transfer", label: "Transferencia", icon: Smartphone, color: "text-purple-600" }
+    { value: "transfer", label: "Transferencia", icon: Smartphone, color: "text-purple-600" },
+    { value: "instant_transfer", label: "DE UNA - Transferencia", icon: Zap, color: "text-orange-600" }
   ];
 
   const selectedClient = clients.find(c => c.id === clientId);

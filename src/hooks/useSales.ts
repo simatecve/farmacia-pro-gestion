@@ -11,12 +11,14 @@ export interface SaleItem {
   unit_price: number;
   discount_amount: number;
   total_price: number;
+  tax_id?: string | null;
 }
 
 export interface Sale {
   id?: string;
   sale_number: string;
   client_id?: string;
+  client_name?: string;
   total_amount: number;
   discount_amount: number;
   tax_amount: number;
@@ -39,6 +41,7 @@ export const useSales = () => {
         .from('sales')
         .select(`
           *,
+          clients (name),
           sale_items (
             *,
             products (name)
@@ -51,6 +54,7 @@ export const useSales = () => {
 
       const formattedSales = (data as any)?.map((sale: any) => ({
         ...sale,
+        client_name: sale.clients?.name || 'CONSUMIDOR FINAL',
         items: sale.sale_items?.map((item: any) => ({
           ...item,
           product_name: item.products?.name

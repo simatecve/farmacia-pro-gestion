@@ -56,7 +56,8 @@ export default function PointOfSale() {
         quantity: 1,
         unit_price: product.sale_price,
         discount_amount: 0,
-        total_price: product.sale_price
+        total_price: product.sale_price,
+        tax_id: (product as any).tax_id || null
       };
       setCartItems([...cartItems, newItem]);
     }
@@ -102,16 +103,61 @@ export default function PointOfSale() {
     const subtotal = cartItems.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
     const itemDiscounts = cartItems.reduce((sum, item) => sum + item.discount_amount, 0);
     const totalDiscount = itemDiscounts + generalDiscount;
-    const taxableAmount = subtotal - totalDiscount;
     
-    // Get default tax rate from system configuration
+    // Calculate tax for each item based on its specific tax configuration
+    let totalTax = 0;
+    let taxBreakdown: { [key: string]: { amount: number; rate: number; name: string } } = {};
+    
+    cartItems.forEach(item => {
+      const itemSubtotal = (item.unit_price * item.quantity) - item.discount_amount;
+      
+      // Find the product's specific tax or use default
+      const productTax = taxSettings.find(tax => tax.id === (item as any).tax_id);
+      const defaultTax = taxSettings.find(tax => tax.is_default) || taxSettings[0];
+      const applicableTax = productTax || defaultTax;
+      
+      if (applicableTax && applicableTax.rate > 0) {
+        const itemTax = itemSubtotal * applicableTax.rate;
+        totalTax += itemTax;
+        
+        // Group taxes by rate for display
+        const taxKey = `${applicableTax.name}_${applicableTax.rate}`;
+        if (!taxBreakdown[taxKey]) {
+          taxBreakdown[taxKey] = {
+            amount: 0,
+            rate: applicableTax.rate,
+            name: applicableTax.name
+          };
+        }
+        taxBreakdown[taxKey].amount += itemTax;
+      }
+    });
+    
+    // Apply general discount proportionally to tax calculation
+    if (generalDiscount > 0) {
+      const discountRatio = generalDiscount / subtotal;
+      totalTax = totalTax * (1 - discountRatio);
+      Object.keys(taxBreakdown).forEach(key => {
+        taxBreakdown[key].amount = taxBreakdown[key].amount * (1 - discountRatio);
+      });
+    }
+    
+    const total = (subtotal - totalDiscount) + totalTax;
+    
+    // For backward compatibility, use the most common tax rate and name
     const defaultTax = taxSettings.find(tax => tax.is_default) || taxSettings[0];
-    const taxRate = defaultTax ? defaultTax.rate : 0.16; // Fallback to 16% if no tax configured
-    
-    const tax = taxableAmount * taxRate;
-    const total = taxableAmount + tax;
+    const taxRate = defaultTax ? defaultTax.rate : 0.16;
+    const taxName = defaultTax?.name || 'IVA';
 
-    return { subtotal, discount: totalDiscount, tax, total, taxRate, taxName: defaultTax?.name || 'IVA' };
+    return { 
+      subtotal, 
+      discount: totalDiscount, 
+      tax: totalTax, 
+      total, 
+      taxRate, 
+      taxName,
+      taxBreakdown 
+    };
   };
 
   const { subtotal, discount, tax, total, taxRate, taxName } = calculateTotals();

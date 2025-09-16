@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProducts, type Product } from '@/hooks/useProducts';
 import { useCategories } from '@/hooks/useCategories';
 import { useLocations } from '@/hooks/useLocations';
+import { useSettings } from '@/hooks/useSettings';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
@@ -39,7 +40,8 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
      min_stock: 0,
      max_stock: 0,
      requires_prescription: false,
-     active: true
+     active: true,
+     tax_id: 'none'
    });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -52,6 +54,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const { createProduct, updateProduct, refreshProducts } = useProducts();
   const { categories } = useCategories();
   const { locations, loading: locationsLoading, error: locationsError } = useLocations();
+  const { taxSettings } = useSettings();
   const { toast } = useToast();
 
   // Inicializar datos del producto si existe
@@ -75,7 +78,8 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
          min_stock: product.min_stock || 0,
          max_stock: product.max_stock || 0,
          requires_prescription: product.requires_prescription || false,
-         active: product.active ?? true
+         active: product.active ?? true,
+         tax_id: (product as any).tax_id || 'none'
        });
       setImagePreview(product.image_url || null);
     }
@@ -438,6 +442,24 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                  </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Impuestos */}
+          <div>
+            <Label>Impuesto</Label>
+            <Select value={formData.tax_id} onValueChange={(value) => updateField('tax_id', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccionar impuesto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sin impuesto</SelectItem>
+                {taxSettings?.map((tax) => (
+                  <SelectItem key={tax.id} value={tax.id}>
+                    {tax.name} ({tax.rate}%)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Precios */}
