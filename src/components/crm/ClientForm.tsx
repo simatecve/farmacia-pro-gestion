@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 
 interface ClientFormProps {
   client?: Client;
-  onSuccess?: () => void;
+  onSuccess?: (newClient?: Client) => void;
 }
 
 export function ClientForm({ client, onSuccess }: ClientFormProps) {
@@ -52,7 +52,10 @@ export function ClientForm({ client, onSuccess }: ClientFormProps) {
           description: client ? "Cliente actualizado correctamente" : "Cliente creado correctamente"
         });
         setOpen(false);
-        onSuccess?.();
+        
+        // Pasar el cliente creado/actualizado a onSuccess
+        onSuccess?.(result.data);
+        
         if (!client) {
           setFormData({
             name: '',

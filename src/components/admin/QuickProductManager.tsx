@@ -11,7 +11,6 @@ export function QuickProductManager() {
   const [loading, setLoading] = useState(false);
   const [productData, setProductData] = useState({
     name: '',
-    sku: '',
     barcode: '',
     sale_price: '',
     stock: ''
@@ -52,7 +51,6 @@ export function QuickProductManager() {
         .from('products')
         .insert([{
           name: productData.name,
-          sku: productData.sku || null,
           barcode: productData.barcode || null,
           sale_price: parseFloat(productData.sale_price),
           purchase_price: parseFloat(productData.sale_price) * 0.7, // 30% margin
@@ -102,7 +100,6 @@ export function QuickProductManager() {
       // Reset form
       setProductData({
         name: '',
-        sku: '',
         barcode: '',
         sale_price: '',
         stock: ''
@@ -139,16 +136,7 @@ export function QuickProductManager() {
                   placeholder="Nombre del producto"
                 />
               </div>
-              <div>
-                <Label htmlFor="sku">SKU</Label>
-                <Input
-                  id="sku"
-                  value={productData.sku}
-                  onChange={(e) => setProductData(prev => ({ ...prev, sku: e.target.value }))}
-                  placeholder="Código SKU"
-                />
-              </div>
-              <div>
+                <div>
                 <Label htmlFor="barcode">Código de Barras</Label>
                 <Input
                   id="barcode"

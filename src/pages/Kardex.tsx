@@ -40,9 +40,8 @@ export default function Kardex() {
       if (filters.searchTerm) {
         const searchLower = filters.searchTerm.toLowerCase();
         const matchesSearch = 
-          movement.product?.name.toLowerCase().includes(searchLower) ||
-          movement.product?.sku?.toLowerCase().includes(searchLower) ||
-          (movement.product as any)?.barcode?.toLowerCase().includes(searchLower) ||
+           movement.product?.name.toLowerCase().includes(searchLower) ||
+           (movement.product as any)?.barcode?.toLowerCase().includes(searchLower) ||
           movement.batch_number?.toLowerCase().includes(searchLower) ||
           movement.notes?.toLowerCase().includes(searchLower);
         
@@ -124,12 +123,11 @@ export default function Kardex() {
   };
 
   const exportToCSV = () => {
-    const headers = ['Fecha', 'Producto', 'SKU', 'Tipo', 'Cantidad', 'Stock Anterior', 'Stock Posterior', 'Costo', 'Ubicación', 'Lote', 'Usuario', 'Notas'];
+    const headers = ['Fecha', 'Producto', 'Tipo', 'Cantidad', 'Stock Anterior', 'Stock Posterior', 'Costo', 'Ubicación', 'Lote', 'Usuario', 'Notas'];
     
     const csvData = filteredMovements.map(movement => [
       format(new Date(movement.created_at), 'dd/MM/yyyy HH:mm', { locale: es }),
       movement.product?.name || '',
-      movement.product?.sku || '',
       movement.movement_type,
       movement.quantity,
       movement.stock_before || 0,
@@ -247,7 +245,7 @@ export default function Kardex() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Buscar Producto</label>
               <AdvancedSearch
-                placeholder="Buscar por nombre, SKU, código..."
+                placeholder="Buscar por nombre, código..."
                 onSearchChange={(term) => {
                   setFilters(prev => ({ ...prev, searchTerm: term }));
                 }}
@@ -369,8 +367,7 @@ export default function Kardex() {
                       </div>
                     </TableHead>
                     <TableHead>Producto</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Tipo</TableHead>
+                     <TableHead>Tipo</TableHead>
                     <TableHead className="text-right">Cantidad</TableHead>
                     <TableHead className="text-right">Stock Anterior</TableHead>
                     <TableHead className="text-right">Stock Posterior</TableHead>
@@ -397,7 +394,7 @@ export default function Kardex() {
                       <TableCell className="font-mono text-sm">
                         {format(new Date(movement.created_at), 'dd/MM/yyyy\nHH:mm', { locale: es })}
                       </TableCell>
-                      <TableCell>
+                       <TableCell>
                         <div>
                           <div className="font-medium">{movement.product?.name}</div>
                           {(movement.product as any)?.description && (
@@ -407,9 +404,7 @@ export default function Kardex() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {movement.product?.sku}
-                      </TableCell>
+
                       <TableCell>
                         <Badge 
                           variant="outline" 

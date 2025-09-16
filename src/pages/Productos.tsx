@@ -21,8 +21,7 @@ export default function Productos() {
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (product.sku && product.sku.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (product.code && product.code.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (product.barcode && product.barcode.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (((product as any)?.category?.name) && ((product as any).category.name.toLowerCase().includes(searchTerm.toLowerCase()))) ||
     (product.laboratory && product.laboratory.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -190,7 +189,7 @@ export default function Productos() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Producto</TableHead>
-                    <TableHead>SKU/Código</TableHead>
+                    <TableHead>Código</TableHead>
                     <TableHead>Categoría</TableHead>
                     <TableHead>Ubicación</TableHead>
                     <TableHead>Precio Venta</TableHead>
@@ -231,17 +230,12 @@ export default function Productos() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex flex-col gap-1">
-                            {product.sku ? (
-                              <Badge variant="outline">{product.sku}</Badge>
-                            ) : (
-                              <span className="text-muted-foreground italic">Sin SKU</span>
-                            )}
-                            {product.code && (
-                              <Badge variant="secondary" className="text-xs">{product.code}</Badge>
-                            )}
-                          </div>
-                        </TableCell>
+                           {product.barcode ? (
+                             <Badge variant="outline">{product.barcode}</Badge>
+                           ) : (
+                             <span className="text-muted-foreground italic">Sin código</span>
+                           )}
+                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
                             {((product as any)?.category?.name) || (

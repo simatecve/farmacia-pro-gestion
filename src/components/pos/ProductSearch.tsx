@@ -37,13 +37,12 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
     } else {
       const searchLower = searchTerm.toLowerCase().trim();
       const filtered = products.filter((product) => {
-        // Search in name, SKU, and barcode with better matching
+        // Search in name and barcode with better matching
         const nameMatch = product.name.toLowerCase().includes(searchLower);
-        const skuMatch = product.sku?.toLowerCase().includes(searchLower);
         const barcodeMatch = product.barcode?.toLowerCase().includes(searchLower);
         // Note: description not available in ProductWithStock interface
         
-        return nameMatch || skuMatch || barcodeMatch;
+        return nameMatch || barcodeMatch;
       });
       setFilteredProducts(filtered.slice(0, 20));
     }
@@ -89,10 +88,6 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
     // First try exact barcode match
     let product = products.find(p => p.barcode === searchValue);
     
-    // If no barcode match, try SKU
-    if (!product) {
-      product = products.find(p => p.sku?.toLowerCase() === searchValue.toLowerCase());
-    }
     
     // If still no match, try name
     if (!product) {
@@ -175,7 +170,7 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nombre, SKU o código de barras..."
+            placeholder="Buscar por nombre o código de barras..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={(e) => {
@@ -203,7 +198,7 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
             <p className="text-sm text-muted-foreground mt-2">Cargando productos...</p>
           </div>
         ) : (
-          <div className="max-h-80 overflow-y-auto space-y-2">
+          <div className="h-[calc(100vh-320px)] overflow-y-auto space-y-3 pr-2">
             {filteredProducts.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
@@ -220,17 +215,17 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
               filteredProducts.map((product) => (
                 <div 
                   key={product.id} 
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors cursor-pointer"
+                  className="bg-white border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer"
                   onClick={() => handleShowProductDetails(product)}
                 >
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="flex items-start gap-3">
                     {/* Product Image */}
                     <div className="flex-shrink-0">
                       {product.image_url ? (
                         <img 
                           src={product.image_url} 
                           alt={product.name}
-                          className="w-12 h-12 object-cover rounded-md border"
+                          className="w-16 h-16 object-cover rounded-lg border"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
@@ -238,60 +233,63 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
                           }}
                         />
                       ) : null}
-                      <div className={`w-12 h-12 bg-muted rounded-md border flex items-center justify-center ${product.image_url ? 'hidden' : ''}`}>
-                        <Package className="h-6 w-6 text-muted-foreground" />
+                      <div className={`w-16 h-16 bg-muted rounded-lg border flex items-center justify-center ${product.image_url ? 'hidden' : ''}`}>
+                        <Package className="h-8 w-8 text-muted-foreground" />
                       </div>
                     </div>
                     
                     {/* Product Info */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm truncate">{product.name}</h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          ${product.sale_price.toFixed(2)}
-                        </Badge>
-                        {product.sku && (
-                          <Badge variant="secondary" className="text-xs">
-                            SKU: {product.sku}
-                          </Badge>
-                        )}
+                      <h4 className="font-semibold text-base mb-2 line-clamp-2">{product.name}</h4>
+                      
+                      {/* Price and Stock */}
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-lg font-bold text-primary">${product.sale_price.toFixed(2)}</span>
                         <Badge variant={
                           (product.current_stock || 0) > 0 ? "default" : "destructive"
                         } className="text-xs">
                           Stock: {product.current_stock || 0}
                         </Badge>
-                        {product.requires_prescription && (
+                      </div>
+                      
+                      {/* Prescription */}
+                      {product.requires_prescription && (
+                        <div className="flex items-center gap-2 mb-3">
                           <Badge variant="destructive" className="text-xs flex items-center gap-1">
                             <AlertTriangle className="h-3 w-3" />
                             Receta
                           </Badge>
-                        )}
+                        </div>
+                      )}
+                      
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShowProductDetails(product);
+                          }}
+                          className="flex items-center gap-1 flex-1"
+                        >
+                          <Eye className="h-3 w-3" />
+                          Ver Detalles
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleQuickAdd(product);
+                          }}
+                          disabled={(product.current_stock || 0) <= 0}
+                          className="flex items-center gap-1"
+                        >
+                          <Plus className="h-4 w-4" />
+                          Agregar
+                        </Button>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleShowProductDetails(product);
-                      }}
-                      className="flex items-center gap-1"
-                    >
-                      <Eye className="h-3 w-3" />
-                      Ver
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleQuickAdd(product);
-                      }}
-                      disabled={(product.current_stock || 0) <= 0}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
                   </div>
                 </div>
               ))

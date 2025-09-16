@@ -22,10 +22,9 @@ interface ProductFormProps {
 export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   // Estados del formulario
   const [formData, setFormData] = useState({
-     name: '',
-     description: '',
-     sku: '',
-     barcode: '',
+      name: '',
+      description: '',
+           barcode: '',
      code: '',
      category_id: 'none',
      unit_type: 'unidad',
@@ -61,7 +60,6 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       setFormData({
          name: product.name || '',
          description: product.description || '',
-         sku: product.sku || '',
          barcode: product.barcode || '',
          code: product.code || '',
          category_id: product.category_id || 'none',
@@ -193,7 +191,6 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
       const productData = {
          name: formData.name.trim(),
          description: formData.description.trim() || null,
-         sku: formData.sku.trim() || null,
          barcode: formData.barcode.trim() || null,
          code: formData.code.trim() || null,
          category_id: formData.category_id === 'none' ? null : formData.category_id,
@@ -236,7 +233,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
          setFormData({
            name: '',
            description: '',
-           sku: '',
+  
            barcode: '',
            code: '',
            category_id: 'none',
@@ -379,26 +376,14 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="sku">SKU</Label>
-              <Input
-                id="sku"
-                value={formData.sku}
-                onChange={(e) => updateField('sku', e.target.value)}
-                placeholder="SKU del producto"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="barcode">Código de Barras</Label>
-              <Input
-                id="barcode"
-                value={formData.barcode}
-                onChange={(e) => updateField('barcode', e.target.value)}
-                placeholder="Código de barras"
-              />
-            </div>
+          <div>
+            <Label htmlFor="barcode">Código de Barras</Label>
+            <Input
+              id="barcode"
+              value={formData.barcode}
+              onChange={(e) => updateField('barcode', e.target.value)}
+              placeholder="Código de barras"
+            />
           </div>
 
           <div>

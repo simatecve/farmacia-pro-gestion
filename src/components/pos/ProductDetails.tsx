@@ -126,12 +126,7 @@ export function ProductDetails({ product, isOpen, onClose, onAddToCart }: Produc
             <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">Información del Producto</h4>
             
             <div className="grid grid-cols-2 gap-4">
-              {product.sku && (
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">SKU:</span>
-                  <span className="text-sm font-medium">{product.sku}</span>
-                </div>
-              )}
+
               
               {product.barcode && (
                 <div className="flex justify-between">

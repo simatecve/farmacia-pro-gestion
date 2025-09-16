@@ -192,10 +192,15 @@ export function ClientSearch({
   };
 
   // Manejar creación de nuevo cliente
-  const handleNewClientSuccess = () => {
+  const handleNewClientSuccess = (newClient?: Client) => {
     setShowNewClientDialog(false);
     refreshClients();
     toast.success('Cliente creado exitosamente');
+    
+    // Si se proporciona el nuevo cliente, seleccionarlo automáticamente
+    if (newClient) {
+      handleClientSelect(newClient);
+    }
   };
 
   return (

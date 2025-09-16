@@ -4,8 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface ProductWithStock {
   id: string;
   name: string;
-  sku?: string;
-  barcode?: string;
+   barcode?: string;
   sale_price: number;
   current_stock: number;
   unit_type: string;

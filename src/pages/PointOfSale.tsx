@@ -223,43 +223,40 @@ export default function PointOfSale() {
       {/* Main POS Interface */}
       <div className="w-full p-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Product Search - Takes 2 columns on large screens */}
-          <div className="lg:col-span-2 h-[calc(100vh-200px)]">
+          {/* Primera Columna - Productos */}
+          <div className="h-[calc(100vh-200px)]">
             <ProductSearch onAddProduct={addToCart} />
           </div>
 
-          {/* Right Sidebar - Cart and Checkout */}
-          <div className="h-[calc(100vh-200px)] flex flex-col gap-4">
-            {/* Cart - Takes most of the space */}
-            <div className="flex-1 min-h-0 overflow-hidden">
-              <POSCart
-                items={cartItems}
-                onUpdateQuantity={updateQuantity}
-                onUpdateDiscount={updateDiscount}
-                onUpdatePrice={updatePrice}
-                onRemoveItem={removeItem}
-                onClearCart={clearCart}
-                subtotal={subtotal}
-                discount={discount}
-                tax={tax}
-                total={total}
-                taxRate={taxRate}
-                taxName={taxName}
-              />
-            </div>
-            
-            {/* Checkout - Compact fixed height */}
-            <div className="flex-shrink-0 h-auto">
-              <POSCheckout
-                items={cartItems}
-                total={total}
-                subtotal={subtotal}
-                discount={discount}
-                onProcessSale={processSale}
-                onDiscountChange={setGeneralDiscount}
-                disabled={cartItems.length === 0}
-              />
-            </div>
+          {/* Segunda Columna - Carrito */}
+          <div className="h-[calc(100vh-200px)] overflow-hidden">
+            <POSCart
+              items={cartItems}
+              onUpdateQuantity={updateQuantity}
+              onUpdateDiscount={updateDiscount}
+              onUpdatePrice={updatePrice}
+              onRemoveItem={removeItem}
+              onClearCart={clearCart}
+              subtotal={subtotal}
+              discount={discount}
+              tax={tax}
+              total={total}
+              taxRate={taxRate}
+              taxName={taxName}
+            />
+          </div>
+          
+          {/* Tercera Columna - Finalizar Venta */}
+          <div className="h-[calc(100vh-200px)]">
+            <POSCheckout
+              items={cartItems}
+              total={total}
+              subtotal={subtotal}
+              discount={discount}
+              onProcessSale={processSale}
+              onDiscountChange={setGeneralDiscount}
+              disabled={cartItems.length === 0}
+            />
           </div>
         </div>
       </div>

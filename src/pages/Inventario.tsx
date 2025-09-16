@@ -23,9 +23,8 @@ export default function Inventario() {
     
     const searchLower = searchTerm.toLowerCase();
     return (
-      item.product?.name.toLowerCase().includes(searchLower) ||
-      item.product?.sku?.toLowerCase().includes(searchLower) ||
-      (item.product as any)?.barcode?.toLowerCase().includes(searchLower) ||
+        item.product?.name.toLowerCase().includes(searchLower) ||
+        (item.product as any)?.barcode?.toLowerCase().includes(searchLower) ||
       (item.product as any)?.description?.toLowerCase().includes(searchLower) ||
       item.location?.name.toLowerCase().includes(searchLower) ||
       item.batch_number?.toLowerCase().includes(searchLower) ||
@@ -38,9 +37,8 @@ export default function Inventario() {
     
     const searchLower = searchTerm.toLowerCase();
     return (
-      movement.product?.name.toLowerCase().includes(searchLower) ||
-      movement.product?.sku?.toLowerCase().includes(searchLower) ||
-      (movement.product as any)?.barcode?.toLowerCase().includes(searchLower) ||
+        movement.product?.name.toLowerCase().includes(searchLower) ||
+        (movement.product as any)?.barcode?.toLowerCase().includes(searchLower) ||
       movement.location?.name.toLowerCase().includes(searchLower) ||
       movement.movement_type.toLowerCase().includes(searchLower) ||
       movement.notes?.toLowerCase().includes(searchLower)
@@ -208,7 +206,7 @@ export default function Inventario() {
                 </CardTitle>
                 <div className="max-w-md">
                   <AdvancedSearch
-                    placeholder="Buscar en inventario por nombre, SKU, código de barras..."
+                    placeholder="Buscar en inventario por nombre o código de barras..."
                     onSearchChange={(term, results) => {
                       setSearchTerm(term);
                     }}
@@ -233,7 +231,7 @@ export default function Inventario() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Producto</TableHead>
-                        <TableHead>SKU</TableHead>
+                        <TableHead>Código</TableHead>
                         <TableHead>Ubicación</TableHead>
                         <TableHead>Lote</TableHead>
                         <TableHead>Stock Total</TableHead>
@@ -254,7 +252,7 @@ export default function Inventario() {
                             </TableCell>
                             <TableCell>
                               <Badge variant="outline">
-                                {item.product?.sku || 'N/A'}
+                                {(item.product as any)?.barcode || 'N/A'}
                               </Badge>
                             </TableCell>
                             <TableCell>{item.location?.name || 'N/A'}</TableCell>
@@ -309,7 +307,7 @@ export default function Inventario() {
                 </CardTitle>
                 <div className="max-w-md">
                   <AdvancedSearch
-                    placeholder="Buscar movimientos por producto, SKU, código de barras..."
+                    placeholder="Buscar movimientos por producto o código de barras..."
                     onSearchChange={(term, results) => {
                       setSearchTerm(term);
                     }}
@@ -354,9 +352,9 @@ export default function Inventario() {
                           </TableCell>
                           <TableCell className="font-medium">
                             {movement.product?.name || 'N/A'}
-                            {movement.product?.sku && (
+                            {(movement.product as any)?.barcode && (
                               <div className="text-xs text-muted-foreground">
-                                {movement.product.sku}
+                                {(movement.product as any).barcode}
                               </div>
                             )}
                           </TableCell>

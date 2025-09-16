@@ -32,7 +32,7 @@ export function POSCart({ items, onUpdateQuantity, onUpdateDiscount, onUpdatePri
         </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col p-4">
-        <div className="flex-1 overflow-y-auto space-y-2 mb-3 min-h-0">
+        <div className="flex-1 overflow-y-auto space-y-2 mb-3 min-h-0 max-h-96">
           {items.length === 0 ? (
             <div className="text-center text-muted-foreground py-12">
               <div className="text-6xl opacity-20 mb-4">🛒</div>
@@ -79,18 +79,21 @@ export function POSCart({ items, onUpdateQuantity, onUpdateDiscount, onUpdatePri
                     <DollarSign className="h-3 w-3" />
                     Precio para esta venta
                   </Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={item.unit_price}
-                    onChange={(e) => {
-                      const newPrice = Math.max(0, parseFloat(e.target.value) || 0);
-                      onUpdatePrice(index, newPrice);
-                    }}
-                    className="h-8 text-sm font-medium border-blue-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    title="Editar precio unitario para esta venta únicamente"
-                  />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={item.unit_price}
+                      onChange={(e) => {
+                        const newPrice = Math.max(0, parseFloat(e.target.value) || 0);
+                        onUpdatePrice(index, newPrice);
+                      }}
+                      className="h-8 w-24 text-sm font-medium border-blue-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      title="Editar precio unitario para esta venta únicamente"
+                    />
+                    <span className="text-xs text-blue-600">por unidad</span>
+                  </div>
                 </div>
                 
                 {/* Control de cantidad y botón eliminar */}
@@ -100,11 +103,11 @@ export function POSCart({ items, onUpdateQuantity, onUpdateDiscount, onUpdatePri
                       variant="outline"
                       size="sm"
                       onClick={() => onUpdateQuantity(index, Math.max(1, item.quantity - 1))}
-                      className="h-9 w-9 p-0 hover:bg-red-50 hover:border-red-300 transition-colors border-gray-300"
+                      className="h-8 w-8 p-0 hover:bg-red-50 hover:border-red-300 transition-colors border-gray-300"
                       disabled={item.quantity <= 1}
                       title="Disminuir cantidad"
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3 w-3" />
                     </Button>
                     <Input
                       type="number"
@@ -113,7 +116,7 @@ export function POSCart({ items, onUpdateQuantity, onUpdateDiscount, onUpdatePri
                         const newQuantity = Math.max(1, parseInt(e.target.value) || 1);
                         onUpdateQuantity(index, newQuantity);
                       }}
-                      className="h-9 w-16 text-center text-sm font-medium border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      className="h-8 w-14 text-center text-sm font-medium border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       min="1"
                       title="Editar cantidad directamente"
                     />
@@ -121,22 +124,22 @@ export function POSCart({ items, onUpdateQuantity, onUpdateDiscount, onUpdatePri
                       variant="outline"
                       size="sm"
                       onClick={() => onUpdateQuantity(index, item.quantity + 1)}
-                      className="h-9 w-9 p-0 hover:bg-green-50 hover:border-green-300 transition-colors border-gray-300"
+                      className="h-8 w-8 p-0 hover:bg-green-50 hover:border-green-300 transition-colors border-gray-300"
                       title="Aumentar cantidad"
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3" />
                     </Button>
-                    <span className="text-sm text-gray-600 ml-2">unidades</span>
+                    <span className="text-xs text-gray-600 ml-1">unidades</span>
                   </div>
                   
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => onRemoveItem(index)}
-                    className="text-red-600 hover:text-white hover:bg-red-600 border-red-300 hover:border-red-600 h-9 w-9 p-0 transition-all duration-200"
+                    className="text-red-600 hover:text-white hover:bg-red-600 border-red-300 hover:border-red-600 h-8 w-8 p-0 transition-all duration-200"
                     title="Eliminar producto del carrito"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
 

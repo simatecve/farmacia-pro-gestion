@@ -75,12 +75,7 @@ export function ProductDropdown({
                     <span className="font-medium">{product.name}</span>
                   </div>
                   <div className="flex items-center gap-2 mt-1">
-                    {product.sku && (
-                      <Badge variant="outline" className="text-xs">
-                        SKU: {product.sku}
-                      </Badge>
-                    )}
-                    {product.barcode && (
+                     {product.barcode && (
                       <Badge variant="outline" className="text-xs">
                         Código: {product.barcode}
                       </Badge>
