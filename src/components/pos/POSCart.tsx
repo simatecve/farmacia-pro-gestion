@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +23,7 @@ interface POSCartProps {
   taxName?: string;
 }
 
-export function POSCart({ items, onUpdateQuantity, onUpdateDiscount, onUpdatePrice, onRemoveItem, onClearCart, subtotal, discount, tax, total, taxRate = 0.16, taxName = 'IVA' }: POSCartProps) {
+const POSCart = React.memo<POSCartProps>(({ items, onUpdateQuantity, onUpdateDiscount, onUpdatePrice, onRemoveItem, onClearCart, subtotal, discount, tax, total, taxRate = 0.16, taxName = 'IVA' }) => {
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-2 flex-shrink-0">
@@ -190,4 +191,8 @@ export function POSCart({ items, onUpdateQuantity, onUpdateDiscount, onUpdatePri
       </CardContent>
     </Card>
   );
-}
+});
+
+POSCart.displayName = 'POSCart';
+
+export { POSCart };

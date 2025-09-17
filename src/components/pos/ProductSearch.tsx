@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { debounce } from "lodash";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,8 +15,9 @@ interface ProductSearchProps {
   onAddProduct: (product: ProductWithStock) => void;
 }
 
-export function ProductSearch({ onAddProduct }: ProductSearchProps) {
+const ProductSearch = React.memo<ProductSearchProps>(({ onAddProduct }) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [filteredProducts, setFilteredProducts] = useState<ProductWithStock[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithStock | null>(null);
   const [showProductDetails, setShowProductDetails] = useState(false);
@@ -31,11 +33,27 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
 
   const barcodeReaders = getDevicesByType('barcode_reader');
 
+  // Función debounced para actualizar el término de búsqueda
+  const debouncedSetSearchTerm = useCallback(
+    debounce((term: string) => {
+      setDebouncedSearchTerm(term);
+    }, 300),
+    []
+  );
+
+  // Actualizar el término debounced cuando cambie searchTerm
   useEffect(() => {
-    if (searchTerm.trim() === "") {
+    debouncedSetSearchTerm(searchTerm);
+    return () => {
+      debouncedSetSearchTerm.cancel();
+    };
+  }, [searchTerm, debouncedSetSearchTerm]);
+
+  useEffect(() => {
+    if (debouncedSearchTerm.trim() === "") {
       setFilteredProducts(products.slice(0, 20)); // Show first 20 products
     } else {
-      const searchLower = searchTerm.toLowerCase().trim();
+      const searchLower = debouncedSearchTerm.toLowerCase().trim();
       const filtered = products.filter((product) => {
         // Search in name and barcode with better matching
         const nameMatch = product.name.toLowerCase().includes(searchLower);
@@ -46,7 +64,7 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
       });
       setFilteredProducts(filtered.slice(0, 20));
     }
-  }, [searchTerm, products]);
+  }, [debouncedSearchTerm, products]);
 
   // Manejar eventos de código de barras automático
   useEffect(() => {
@@ -310,4 +328,8 @@ export function ProductSearch({ onAddProduct }: ProductSearchProps) {
       />
     </Card>
   );
-}
+});
+
+ProductSearch.displayName = 'ProductSearch';
+
+export { ProductSearch };

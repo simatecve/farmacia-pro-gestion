@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,6 +14,29 @@ import { useSettings } from '@/hooks/useSettings';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
+
+// Schema de validación con Zod
+const ProductSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido').max(255, 'Nombre muy largo'),
+  description: z.string().max(500, 'Descripción muy larga').optional(),
+  barcode: z.string().regex(/^[0-9]*$/, 'El código de barras solo puede contener números').optional(),
+  code: z.string().max(50, 'Código muy largo').optional(),
+  sale_price: z.number().min(0, 'El precio de venta debe ser positivo'),
+  purchase_price: z.number().min(0, 'El precio de compra debe ser positivo'),
+  min_stock: z.number().min(0, 'El stock mínimo debe ser positivo'),
+  max_stock: z.number().min(0, 'El stock máximo debe ser positivo'),
+  presentation: z.string().max(100, 'Presentación muy larga').optional(),
+  concentration: z.string().max(100, 'Concentración muy larga').optional(),
+  laboratory: z.string().max(100, 'Laboratorio muy largo').optional(),
+  registro_sanitario: z.string().max(100, 'Registro sanitario muy largo').optional()
+}).refine((data) => {
+  return data.max_stock >= data.min_stock;
+}, {
+  message: 'El stock máximo debe ser mayor o igual al stock mínimo',
+  path: ['max_stock']
+});
+
+type ProductFormData = z.infer<typeof ProductSchema>;
 
 interface ProductFormProps {
   product?: Product;
@@ -44,6 +68,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
      tax_id: 'none'
    });
 
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -165,15 +190,52 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
     }
   };
 
+  // Función de validación con Zod
+  const validateForm = (): boolean => {
+    try {
+      // Preparar datos para validación
+      const dataToValidate = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || undefined,
+        barcode: formData.barcode.trim() || undefined,
+        code: formData.code.trim() || undefined,
+        sale_price: Number(formData.sale_price),
+        purchase_price: Number(formData.purchase_price),
+        min_stock: Number(formData.min_stock),
+        max_stock: Number(formData.max_stock),
+        presentation: formData.presentation.trim() || undefined,
+        concentration: formData.concentration.trim() || undefined,
+        laboratory: formData.laboratory.trim() || undefined,
+        registro_sanitario: formData.registro_sanitario.trim() || undefined
+      };
+
+      ProductSchema.parse(dataToValidate);
+      setValidationErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          if (err.path.length > 0) {
+            errors[err.path[0] as string] = err.message;
+          }
+        });
+        setValidationErrors(errors);
+      }
+      return false;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSaving(true);
 
     try {
-      // Validación básica - solo el nombre es requerido
-      if (!formData.name.trim()) {
-        throw new Error('El nombre del producto es requerido');
+      // Validación con Zod
+      if (!validateForm()) {
+        setSaving(false);
+        return;
       }
 
       console.log('Starting form submission with data:', formData);
