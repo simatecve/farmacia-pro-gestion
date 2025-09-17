@@ -55,12 +55,13 @@ export function useProducts() {
       
       if (error) throw error;
       
-      // Map the data to ensure location_id exists (even if null)
+      // Map the data to ensure all required fields exist
       const mappedData: Product[] = (data || []).map(item => ({
         id: item.id,
         name: item.name,
         description: item.description,
-        sku: item.sku,
+        sku: item.sku || item.code || '',
+        registro_sanitario: (item as any).registro_sanitario || '',
         barcode: item.barcode,
         code: item.code,
         category_id: item.category_id,
@@ -77,7 +78,7 @@ export function useProducts() {
         requires_prescription: item.requires_prescription,
         active: item.active,
         location_id: (item as any).location_id ?? null,
-        tax_id: item.tax_id ?? null,
+        tax_id: (item as any).tax_id ?? null,
         created_at: item.created_at,
         updated_at: item.updated_at,
         // Add the related data
@@ -115,7 +116,8 @@ export function useProducts() {
         id: data.id,
         name: data.name,
         description: data.description,
-        sku: data.sku,
+        sku: data.sku || data.code || '',
+        registro_sanitario: (data as any).registro_sanitario || '',
         barcode: data.barcode,
         code: data.code,
         category_id: data.category_id,
@@ -132,7 +134,7 @@ export function useProducts() {
         requires_prescription: data.requires_prescription,
         active: data.active,
         location_id: (data as any).location_id ?? null,
-        tax_id: data.tax_id ?? null,
+        tax_id: (data as any).tax_id ?? null,
         created_at: data.created_at,
         updated_at: data.updated_at,
         // Add the related data
@@ -170,7 +172,8 @@ export function useProducts() {
         id: data.id,
         name: data.name,
         description: data.description,
-        sku: data.sku,
+        sku: data.sku || data.code || '',
+        registro_sanitario: (data as any).registro_sanitario || '',
         barcode: data.barcode,
         code: data.code,
         category_id: data.category_id,
@@ -187,7 +190,7 @@ export function useProducts() {
         requires_prescription: data.requires_prescription,
         active: data.active,
         location_id: (data as any).location_id ?? null,
-        tax_id: data.tax_id ?? null,
+        tax_id: (data as any).tax_id ?? null,
         created_at: data.created_at,
         updated_at: data.updated_at,
         // Add the related data

@@ -10,6 +10,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useEffect } from "react";
+import { printerService } from "@/services/printerService";
+import logoImage from "@/assets/logo-talpharma.png.png";
 
 interface ReceiptModalProps {
   isOpen: boolean;
@@ -32,18 +34,51 @@ export function ReceiptModal({ isOpen, onClose, sale, client }: ReceiptModalProp
   // Get current user info for cashier
   const cashierName = user?.profile?.full_name || user?.email || 'Sistema';
 
-  const handlePrint = () => {
-    // For thermal printers, we could send the text version
-    // For now, we'll use the browser's print functionality
-    if (printSettings?.auto_print) {
-      // Auto print logic would go here
-      console.log('Auto printing...');
+  const handlePrint = async () => {
+    try {
+      const printData = {
+        companyName: companySettings?.company_name || companySettings?.name || 'DAALEF FARMA',
+        companyRuc: companySettings?.tax_id || '1709738635001',
+        address: companySettings?.address || 'PICHINCHA / QUITO / LA MAGDALENA / OE 7B OE7-42',
+        phone: companySettings?.phone || '0987654321',
+        email: companySettings?.email || 'farmacia@daalef.com',
+        ticketNumber: sale.sale_number,
+        date: format(new Date(sale.created_at), "dd/MM/yyyy HH:mm:ss", { locale: es }),
+        cashier: cashierName,
+        client: client?.name || 'CONSUMIDOR FINAL',
+        items: sale.items?.map(item => ({
+          name: item.product_name,
+          quantity: item.quantity,
+          price: item.unit_price,
+          total: item.total_price
+        })) || [],
+        subtotal: sale.total_amount - sale.tax_amount,
+        tax: sale.tax_amount,
+        discount: sale.discount_amount || 0,
+        total: sale.total_amount,
+        paymentMethod: getPaymentMethodLabel(sale.payment_method || ''),
+        cashReceived: sale.cash_received || sale.total_amount,
+        change: sale.change_amount || 0,
+        footerText: printSettings?.footer_text || '¡Gracias por su compra!\nVuelva pronto',
+        includeLogo: printSettings?.print_logo || false,
+        paperWidth: printSettings?.paper_width || 80
+      };
+
+      const success = await printerService.printReceipt(JSON.stringify(printData));
+      
+      if (!success) {
+        // Fallback to browser print
+        window.print();
+      }
+    } catch (error) {
+      console.error('Error printing:', error);
+      // Fallback to browser print
+      window.print();
     }
-    window.print();
   };
 
   const generateReceiptText = () => {
-    const companyName = companySettings?.company_name || 'DAALEF FARMA';
+    const companyName = companySettings?.company_name || companySettings?.name || 'DAALEF FARMA';
     const companyRuc = companySettings?.tax_id || '1709738635001';
     const companyAddress = companySettings?.address || 'PICHINCHA / QUITO / LA MAGDALENA / OE 7B OE7-42';
     const companyPhone = companySettings?.phone || '0987654321';
@@ -132,11 +167,20 @@ Recuerde también puede consultar su comprobante en el portal del SRI.
         </DialogHeader>
         
         <ScrollArea className="max-h-[70vh]">
-          <Card className="receipt-print">
+          <Card className={`receipt-print receipt-print-${printSettings?.paper_width || 80}`}>
             <CardContent className="p-6">
               {/* Header - Company Info */}
               <div className="text-center mb-6">
-                <h2 className="text-xl font-bold text-blue-600">{companySettings?.company_name || 'DAALEF FARMA'}</h2>
+                {printSettings?.print_logo && (
+                  <div className="flex justify-center mb-3">
+                    <img 
+                      src={logoImage} 
+                      alt="Logo" 
+                      className="h-16 w-auto object-contain print:h-12"
+                    />
+                  </div>
+                )}
+                <h2 className="text-xl font-bold text-blue-600">{companySettings?.company_name || companySettings?.name || 'DAALEF FARMA'}</h2>
                 <p className="text-sm font-medium text-blue-500 mb-2">www.daalef.com</p>
                 <div className="mt-2 space-y-1 text-sm text-muted-foreground">
                   <p><strong>RUC:</strong> {companySettings?.tax_id || '1709738635001'}</p>
@@ -247,11 +291,11 @@ Recuerde también puede consultar su comprobante en el portal del SRI.
                 <>
                   <div className="flex justify-between text-sm">
                     <span className="font-medium">Efectivo Recibido:</span>
-                    <span className="font-bold">${(sale.cash_received || sale.total_amount).toFixed(2)}</span>
+                    <span className="font-bold">${((sale as any).cash_received || sale.total_amount).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="font-medium">Cambio:</span>
-                    <span className="font-bold text-green-600">${(sale.change_amount || 0).toFixed(2)}</span>
+                    <span className="font-bold text-green-600">${((sale as any).change_amount || 0).toFixed(2)}</span>
                   </div>
                 </>
               )}
@@ -272,8 +316,14 @@ Recuerde también puede consultar su comprobante en el portal del SRI.
               </div>
               
               <div className="text-xs text-gray-500 mt-3 space-y-1">
-                <p>Su comprobante electrónico ha sido generado correctamente.</p>
-                <p>Recuerde también puede consultar su comprobante en el portal del SRI.</p>
+                {printSettings?.footer_text ? (
+                  <div className="whitespace-pre-line">{printSettings.footer_text}</div>
+                ) : (
+                  <>
+                    <p>Su comprobante electrónico ha sido generado correctamente.</p>
+                    <p>Recuerde también puede consultar su comprobante en el portal del SRI.</p>
+                  </>
+                )}
                 <p className="mt-2">Sistema de Gestión Farmacéutica</p>
                 <p>© 2024 - Todos los derechos reservados</p>
               </div>
@@ -309,31 +359,61 @@ const printStyles = `
   }
   
   .receipt-print {
-    width: 300px;
+    width: 80mm;
+    max-width: 80mm;
     margin: 0;
     box-shadow: none;
     border: none;
-    font-family: monospace;
+    font-family: 'Courier New', 'Consolas', monospace;
+    font-size: 11px;
+    line-height: 1.2;
+    color: #000 !important;
+    background: #fff !important;
   }
   
+  .receipt-print-58 { width: 58mm; max-width: 58mm; }
+  .receipt-print-80 { width: 80mm; max-width: 80mm; }
+  .receipt-print-112 { width: 112mm; max-width: 112mm; }
+  
   .receipt-print * {
-    font-size: 12px !important;
-    line-height: 1.3 !important;
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    color: #000 !important;
   }
   
   .receipt-print h2 {
     font-size: 14px !important;
     font-weight: bold !important;
+    margin: 2px 0 !important;
   }
+  
+  .receipt-print h3 {
+    font-size: 12px !important;
+    font-weight: bold !important;
+    margin: 2px 0 !important;
+  }
+  
+  .receipt-print img {
+    max-width: 60px !important;
+    height: auto !important;
+    margin: 0 auto 5px !important;
+    display: block !important;
+  }
+  
+  .receipt-print .text-xl { font-size: 14px !important; }
+  .receipt-print .text-lg { font-size: 12px !important; }
+  .receipt-print .text-sm { font-size: 10px !important; }
+  .receipt-print .text-xs { font-size: 9px !important; }
   
   body {
     margin: 0;
     padding: 0;
+    font-family: 'Courier New', 'Consolas', monospace;
   }
   
   @page {
-    margin: 5mm;
-    size: auto;
+    margin: 3mm;
+    size: 80mm auto;
   }
 }
 `;

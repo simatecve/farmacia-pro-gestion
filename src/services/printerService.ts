@@ -98,30 +98,67 @@ class PrinterService {
           <!DOCTYPE html>
           <html>
             <head>
+              <meta charset="UTF-8">
               <style>
-                @page { margin: 0; size: 80mm auto; }
+                @page { margin: 0; size: auto; }
                 @media print {
-                  body { margin: 0; padding: 10px; font-family: 'Courier New', monospace; font-size: 12px; }
-                  .ticket { width: 100%; }
+                  body { 
+                    margin: 0; 
+                    padding: 5px; 
+                    font-family: 'Courier New', 'Consolas', monospace; 
+                    font-size: 11px; 
+                    line-height: 1.2;
+                    color: #000;
+                    background: #fff;
+                  }
+                  .ticket-width-58 { width: 58mm; max-width: 58mm; }
+                  .ticket-width-80 { width: 80mm; max-width: 80mm; }
+                  .ticket-width-112 { width: 112mm; max-width: 112mm; }
                   .center { text-align: center; }
                   .right { text-align: right; }
                   .bold { font-weight: bold; }
-                  .line { border-bottom: 1px dashed #000; margin: 5px 0; }
-                  .no-print { display: none !important; }
+                  .line { 
+                    border-bottom: 1px dashed #000; 
+                    margin: 3px 0; 
+                    height: 0;
+                  }
+                  img { 
+                    max-width: 100%; 
+                    height: auto; 
+                    display: block; 
+                    margin: 0 auto;
+                  }
                 }
-                body { font-family: 'Courier New', monospace; font-size: 12px; margin: 0; padding: 10px; }
-                .ticket { width: 100%; }
+                body { 
+                  margin: 0; 
+                  padding: 5px; 
+                  font-family: 'Courier New', 'Consolas', monospace; 
+                  font-size: 11px; 
+                  line-height: 1.2;
+                  color: #000;
+                  background: #fff;
+                }
+                .ticket-width-58 { width: 58mm; max-width: 58mm; }
+                .ticket-width-80 { width: 80mm; max-width: 80mm; }
+                .ticket-width-112 { width: 112mm; max-width: 112mm; }
                 .center { text-align: center; }
                 .right { text-align: right; }
                 .bold { font-weight: bold; }
-                .line { border-bottom: 1px dashed #000; margin: 5px 0; }
-                .no-print { display: none; }
+                .line { 
+                  border-bottom: 1px dashed #000; 
+                  margin: 3px 0; 
+                  height: 0;
+                }
+                img { 
+                  max-width: 100%; 
+                  height: auto; 
+                  display: block; 
+                  margin: 0 auto;
+                }
               </style>
             </head>
             <body>
-              <div class="ticket">
-                ${printContent}
-              </div>
+              ${printContent}
             </body>
           </html>
         `);
@@ -149,42 +186,115 @@ class PrinterService {
 
   // Formatear contenido para impresión
   private formatForPrint(content: string): string {
-    // Convertir contenido JSON a HTML formateado
     try {
       const data = JSON.parse(content);
+      const paperWidth = data.paperWidth || 80;
+      const includeImage = data.includeLogo;
       
       let html = `
-        <div class="center bold">${data.companyName || 'FARMACIA PRO'}</div>
-        <div class="center">${data.address || ''}</div>
-        <div class="center">${data.phone || ''}</div>
-        <div class="line"></div>
-        <div>Fecha: ${new Date().toLocaleString()}</div>
-        <div>Ticket: ${data.ticketNumber || ''}</div>
-        <div class="line"></div>
+        <div class="ticket-width-${paperWidth}">
       `;
 
+      // Logo de empresa si está habilitado
+      if (includeImage) {
+        html += `
+          <div class="center">
+            <img src="/src/assets/logo-talpharma.png.png" alt="Logo" style="max-width: 120px; height: auto; margin-bottom: 8px;" />
+          </div>
+        `;
+      }
+
+      html += `
+          <div class="center bold">${data.companyName || 'FARMACIA PRO'}</div>
+          <div class="center">www.daalef.com</div>
+          <div class="center">RUC: ${data.companyRuc || ''}</div>
+          <div class="center">${data.address || ''}</div>
+          <div class="center">Tel: ${data.phone || ''}</div>
+          <div class="center">Email: ${data.email || ''}</div>
+          <div class="line"></div>
+          <div class="center bold">FACTURA DE VENTA</div>
+          <div class="center">N°: ${data.ticketNumber || ''}</div>
+          <div class="line"></div>
+          <div>Fecha: ${data.date || new Date().toLocaleString()}</div>
+          <div>Cajero: ${data.cashier || ''}</div>
+          <div>Cliente: ${data.client || 'CONSUMIDOR FINAL'}</div>
+          <div class="line"></div>
+      `;
+
+      // Productos
       if (data.items && Array.isArray(data.items)) {
+        html += `<div class="center bold">PRODUCTOS</div>`;
         data.items.forEach((item: any) => {
+          const name = (item.name || '').substring(0, 20);
+          const qty = item.quantity || 0;
+          const price = item.price || 0;
+          const total = item.total || 0;
+          
           html += `
-            <div style="display: flex; justify-content: space-between;">
-              <span>${item.name}</span>
-              <span>$${item.total?.toFixed(2)}</span>
+            <div style="display: flex; justify-content: space-between; margin: 2px 0;">
+              <span style="flex: 1;">${name}</span>
+              <span style="width: 80px; text-align: right;">$${total.toFixed(2)}</span>
             </div>
-            <div style="font-size: 10px;">
-              ${item.quantity}x $${item.price?.toFixed(2)}
+            <div style="font-size: 10px; color: #666;">
+              ${qty}x $${price.toFixed(2)}
             </div>
           `;
         });
       }
 
       html += `
-        <div class="line"></div>
-        <div style="display: flex; justify-content: space-between;" class="bold">
-          <span>TOTAL:</span>
-          <span>$${data.total?.toFixed(2) || '0.00'}</span>
+          <div class="line"></div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>Subtotal 0%:</span>
+            <span>$${(data.subtotal || 0).toFixed(2)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>IVA 15%:</span>
+            <span>$${(data.tax || 0).toFixed(2)}</span>
+          </div>
+      `;
+
+      if (data.discount > 0) {
+        html += `
+          <div style="display: flex; justify-content: space-between; color: green;">
+            <span>Descuento:</span>
+            <span>-$${data.discount.toFixed(2)}</span>
+          </div>
+        `;
+      }
+
+      html += `
+          <div class="line"></div>
+          <div style="display: flex; justify-content: space-between;" class="bold">
+            <span>TOTAL:</span>
+            <span>$${(data.total || 0).toFixed(2)}</span>
+          </div>
+          <div class="line"></div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>Forma de Pago:</span>
+            <span class="bold">${data.paymentMethod || ''}</span>
+          </div>
+      `;
+
+      if (data.paymentMethod === 'EFECTIVO') {
+        html += `
+          <div style="display: flex; justify-content: space-between;">
+            <span>Efectivo Recibido:</span>
+            <span>$${(data.cashReceived || 0).toFixed(2)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span>Cambio:</span>
+            <span class="bold">$${(data.change || 0).toFixed(2)}</span>
+          </div>
+        `;
+      }
+
+      html += `
+          <div class="line"></div>
+          <div class="center">${data.footerText || '¡Gracias por su compra!'}</div>
+          <div class="center bold">DAALEF FARMA</div>
+          <div class="center">www.daalef.com</div>
         </div>
-        <div class="line"></div>
-        <div class="center">¡Gracias por su compra!</div>
       `;
 
       return html;

@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface CompanySettings {
   id: string;
   name: string;
+  company_name?: string;
   legal_name?: string;
   tax_id?: string;
   address?: string;

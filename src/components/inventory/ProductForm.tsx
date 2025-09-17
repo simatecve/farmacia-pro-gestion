@@ -288,7 +288,11 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
         });
       } else {
         console.log('Creating new product...');
-        await createProduct(productData);
+        await createProduct({
+          ...productData,
+          sku: productData.code,
+          tax_id: formData.tax_id
+        });
         console.log('Product created successfully');
         toast({
           title: "Éxito",
@@ -296,27 +300,28 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
         });
         
         // Limpiar formulario
-         setFormData({
-           name: '',
-           description: '',
-  
-           barcode: '',
-           code: '',
-           category_id: 'none',
-           unit_type: 'unidad',
-           presentation: '',
-           concentration: '',
-           laboratory: '',
-           registro_sanitario: '',
-           location_id: 'none',
-           expiry_date: '',
-           sale_price: 0,
-           purchase_price: 0,
-           min_stock: 0,
-           max_stock: 0,
-           requires_prescription: false,
-           active: true
-         });
+        setFormData({
+          name: '',
+          description: '',
+          barcode: '',
+          code: '',
+          category_id: 'none',
+          unit_type: 'unidad',
+          presentation: '',
+          concentration: '',
+          laboratory: '',
+          registro_sanitario: '',
+          sale_price: 0,
+          purchase_price: 0,
+          min_stock: 0,
+          max_stock: 0,
+          
+          expiry_date: '',
+          tax_id: taxSettings[0]?.id || '',
+          active: true,
+          location_id: 'none',
+          requires_prescription: false
+        });
         setImageFile(null);
         setImagePreview(null);
       }
