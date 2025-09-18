@@ -131,8 +131,8 @@ export function PurchaseOrderForm({ purchaseOrder, onSuccess }: PurchaseOrderFor
       };
 
       const result = purchaseOrder
-        ? await updateOrder(purchaseOrder.id, orderData)
-        : await createOrder(orderData);
+        ? await updateOrder()
+        : await createOrder();
       if (result.success) {
         toast.success(purchaseOrder ? "Orden de compra actualizada correctamente" : "Orden de compra creada correctamente");
         

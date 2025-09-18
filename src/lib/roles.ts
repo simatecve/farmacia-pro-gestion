@@ -284,7 +284,7 @@ export class RoleManager {
    * Verifica si un usuario es gerente o superior
    */
   static isManagerOrAbove(userRoles: UserRole[]): boolean {
-    return userRoles.some(role => [ROLES.ADMIN, ROLES.MANAGER].includes(role));
+    return userRoles.some(role => [ROLES.ADMIN as UserRole, ROLES.MANAGER as UserRole].includes(role));
   }
 
   /**

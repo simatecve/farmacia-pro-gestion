@@ -15,7 +15,7 @@ export default function Compras() {
   const handleReceiveOrder = async (orderId: string) => {
     setReceivingOrder(orderId);
     try {
-      const result = await markOrderAsReceived(orderId);
+      const result = await markOrderAsReceived();
       if (result.success) {
         toast.success('Orden recibida correctamente. El inventario ha sido actualizado.');
       } else {

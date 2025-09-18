@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Product } from '@/hooks/useProducts';
+
+export type { Product };
 import { useProducts } from '@/hooks/useProducts';
 import { useBarcodeScanner } from '@/hooks/useBarcodeScanner';
 
@@ -15,6 +17,7 @@ interface AdvancedSearchProps {
   className?: string;
   disabled?: boolean;
   autoFocus?: boolean;
+  showResults?: boolean;
 }
 
 export function AdvancedSearch({
@@ -23,7 +26,8 @@ export function AdvancedSearch({
   placeholder = "Buscar productos por nombre, código o laboratorio...",
   className = "",
   disabled = false,
-  autoFocus = false
+  autoFocus = false,
+  showResults: showResultsProp = true
 }: AdvancedSearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
@@ -82,7 +86,7 @@ export function AdvancedSearch({
       }).slice(0, 10); // Limitar a 10 resultados
       
       setSearchResults(results);
-      setShowResults(results.length > 0);
+      setShowResults(results.length > 0 && showResultsProp);
       setSelectedIndex(-1);
       onSearchChange?.(term, results);
     } catch (error) {
@@ -271,7 +275,7 @@ export function AdvancedSearch({
                         </span>
                       )}
                       <span className="text-sm text-muted-foreground">
-                        Stock: {product.current_stock}
+                        Stock: {(product as any).current_stock || 0}
                       </span>
                     </div>
                     {product.description && (

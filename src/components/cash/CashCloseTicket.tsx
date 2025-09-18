@@ -35,7 +35,7 @@ CAJA: ${session.register_name}
 Responsable: QUINGA SANCHEZ JOHN WILFRIDO
 Fecha Apertura: ${format(new Date(session.opened_at), 'dd/MM/yyyy HH:mm:ss', { locale: es })}
 Fecha Cierre: ${session.closed_at ? format(new Date(session.closed_at), 'dd/MM/yyyy HH:mm:ss', { locale: es }) : 'Pendiente'}
-N° Ventas Realizadas: ${session.total_transactions || 0}
+N° Ventas Realizadas: ${(session as any).total_transactions || 0}
 N° Ventas Anuladas: 0
 Valor de Apertura: ${session.opening_amount.toFixed(2)}
 

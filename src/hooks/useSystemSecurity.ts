@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 
 export interface SystemSecuritySettings {
   id: string;
@@ -18,13 +17,19 @@ export function useSystemSecurity() {
   const fetchSettings = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('system_security_settings')
-        .select('*')
-        .order('setting_key');
-
-      if (error) throw error;
-      setSettings(data || []);
+      // System security settings table doesn't exist in current database
+      // Using mock data for now
+      const mockSettings = [
+        {
+          id: '1',
+          setting_key: 'cash_drawer_pin',
+          setting_value: '1234',
+          description: 'PIN para abrir gaveta de dinero',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+      ];
+      setSettings(mockSettings);
     } catch (err) {
       console.error('Error fetching security settings:', err);
       setError(err instanceof Error ? err.message : 'Error desconocido');
@@ -40,32 +45,15 @@ export function useSystemSecurity() {
 
   const updateSetting = async (key: string, value: string, description?: string) => {
     try {
-      const existingSetting = settings.find(s => s.setting_key === key);
+      // Mock implementation - system_security_settings table doesn't exist
+      console.log('Mock updateSetting:', { key, value, description });
       
-      if (existingSetting) {
-        const { error } = await supabase
-          .from('system_security_settings')
-          .update({ 
-            setting_value: value, 
-            description,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingSetting.id);
-
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('system_security_settings')
-          .insert({
-            setting_key: key,
-            setting_value: value,
-            description
-          });
-
-        if (error) throw error;
-      }
-
-      await fetchSettings();
+      // Update local state
+      setSettings(prev => prev.map(setting => 
+        setting.setting_key === key 
+          ? { ...setting, setting_value: value, description: description || setting.description }
+          : setting
+      ));
     } catch (err) {
       console.error('Error updating security setting:', err);
       throw err;

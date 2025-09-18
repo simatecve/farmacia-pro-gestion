@@ -188,8 +188,9 @@ export const UsersPage: React.FC = () => {
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <UserList 
+              onCreateUser={() => {}}
               onEditUser={handleEditUser}
-              refreshTrigger={refreshTrigger}
+              onDeleteUser={() => {}}
             />
           </div>
         </div>

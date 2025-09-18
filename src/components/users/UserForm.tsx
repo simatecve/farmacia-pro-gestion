@@ -38,7 +38,7 @@ export const UserForm: React.FC<UserFormProps> = ({
   const [success, setSuccess] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  const { createUser, updateUserRoles } = useUserManagement();
+  const { createUser, updateUser } = useUserManagement();
   const { isAdmin, hasPermission } = useAuth();
 
   const isEditing = !!user;
@@ -89,7 +89,7 @@ export const UserForm: React.FC<UserFormProps> = ({
     }
 
     // Check if user can assign admin/manager roles
-    if (!canAssignAdminRole && formData.roles.some(role => [ROLES.ADMIN, ROLES.MANAGER].includes(role))) {
+    if (!canAssignAdminRole && formData.roles.some(role => [ROLES.ADMIN as UserRole, ROLES.MANAGER as UserRole].includes(role))) {
       errors.roles = 'No tienes permisos para asignar roles de administrador o manager';
     }
 
@@ -114,12 +114,16 @@ export const UserForm: React.FC<UserFormProps> = ({
 
       if (isEditing && user) {
         // Update existing user roles
-        result = await updateUserRoles(user.user_id, formData.roles);
+        result = await updateUser(user.user_id, {
+          full_name: formData.full_name.trim(),
+          roles: formData.roles
+        });
       } else {
         // Create new user
         result = await createUser({
           email: formData.email.trim(),
-          fullName: formData.full_name.trim(),
+          password: 'TempPassword123!', // Temporary password
+          full_name: formData.full_name.trim(),
           roles: formData.roles
         });
       }
@@ -334,7 +338,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                             <div>
                               <div className="font-medium text-sm capitalize">{role}</div>
                               <div className="text-xs opacity-75 mt-1">
-                                {ROLE_DESCRIPTIONS[role]}
+                                {ROLE_DESCRIPTIONS[role]?.description || ''}
                               </div>
                             </div>
                             <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${

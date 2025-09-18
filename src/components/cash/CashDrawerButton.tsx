@@ -52,7 +52,7 @@ export function CashDrawerButton({
         // Para impresoras USB, necesitamos usar la Web USB API
         if ('usb' in navigator) {
           try {
-            const devices = await navigator.usb.getDevices();
+            const devices = await (navigator.usb as any).getDevices();
             const usbPrinter = devices.find(device => 
               device.vendorId === printer.connection_config?.vendorId &&
               device.productId === printer.connection_config?.productId

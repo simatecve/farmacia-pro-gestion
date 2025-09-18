@@ -166,6 +166,7 @@ export function UserManagement() {
       {showUserForm && (
         <UserForm
           user={selectedUser}
+          isOpen={showUserForm}
           onClose={() => {
             setShowUserForm(false);
             setSelectedUser(null);

@@ -175,8 +175,6 @@ export function MovementForm({ onSave, onCancel }: MovementFormProps) {
                   <AdvancedSearch
                     onProductSelect={(product) => updateField('product_id', product.id)}
                     placeholder="Buscar producto por nombre, SKU o código de barras..."
-                    selectedProductId={formData.product_id}
-                    showResults={true}
                   />
                 </TabsContent>
                 <TabsContent value="dropdown">

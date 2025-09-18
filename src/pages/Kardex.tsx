@@ -440,7 +440,7 @@ export default function Kardex() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <User className="w-4 h-4 text-muted-foreground" />
-                          {movement.user?.name || 'Sistema'}
+                          {(movement as any).user?.name || 'Sistema'}
                         </div>
                       </TableCell>
                       <TableCell className="max-w-[200px]">
