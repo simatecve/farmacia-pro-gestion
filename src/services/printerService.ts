@@ -191,9 +191,7 @@ class PrinterService {
       const paperWidth = data.paperWidth || 80;
       const includeImage = data.includeLogo;
       
-      let html = `
-        <div class="ticket-width-${paperWidth}">
-      `;
+      let html = `<div class="ticket-width-${paperWidth}">`;
 
       // Logo de empresa si está habilitado
       if (includeImage) {
@@ -205,38 +203,57 @@ class PrinterService {
       }
 
       html += `
-          <div class="center bold">${data.companyName || 'FARMACIA PRO'}</div>
-          <div class="center">www.daalef.com</div>
+          <div class="center bold">${data.companyName || 'DAALEF FARMA'}</div>
+          <div class="center bold">www.daalef.com</div>
           <div class="center">RUC: ${data.companyRuc || ''}</div>
-          <div class="center">${data.address || ''}</div>
-          <div class="center">Tel: ${data.phone || ''}</div>
+          <div class="center">Dirección: ${data.address || ''}</div>
+          <div class="center">Teléfono: ${data.phone || ''}</div>
           <div class="center">Email: ${data.email || ''}</div>
           <div class="line"></div>
           <div class="center bold">FACTURA DE VENTA</div>
           <div class="center">N°: ${data.ticketNumber || ''}</div>
           <div class="line"></div>
-          <div>Fecha: ${data.date || new Date().toLocaleString()}</div>
+          <div>Fecha y Hora: ${data.date || new Date().toLocaleString()}</div>
           <div>Cajero: ${data.cashier || ''}</div>
           <div>Cliente: ${data.client || 'CONSUMIDOR FINAL'}</div>
-          <div class="line"></div>
       `;
 
+      // Información adicional del cliente si existe
+      if (data.clientId) {
+        html += `<div>Cédula: ${data.clientId}</div>`;
+      }
+      if (data.clientPhone) {
+        html += `<div>Teléfono: ${data.clientPhone}</div>`;
+      }
+      if (data.clientAddress) {
+        html += `<div>Dirección: ${data.clientAddress}</div>`;
+      }
+
+      html += `<div class="line"></div>`;
+      
       // Productos
       if (data.items && Array.isArray(data.items)) {
-        html += `<div class="center bold">PRODUCTOS</div>`;
+        html += `
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; font-weight: bold; margin: 8px 0; padding: 4px; background: #f0f0f0;">
+            <div>CANT</div>
+            <div>PRODUCTO</div>
+            <div style="text-align: right;">PRECIO</div>
+            <div style="text-align: right;">TOTAL</div>
+          </div>
+        `;
+        
         data.items.forEach((item: any) => {
-          const name = (item.name || '').substring(0, 20);
+          const name = (item.name || '').substring(0, 15);
           const qty = item.quantity || 0;
           const price = item.price || 0;
           const total = item.total || 0;
           
           html += `
-            <div style="display: flex; justify-content: space-between; margin: 2px 0;">
-              <span style="flex: 1;">${name}</span>
-              <span style="width: 80px; text-align: right;">$${total.toFixed(2)}</span>
-            </div>
-            <div style="font-size: 10px; color: #666;">
-              ${qty}x $${price.toFixed(2)}
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 4px; margin: 2px 0; padding: 2px; border-bottom: 1px solid #eee;">
+              <div style="font-weight: bold;">${qty}</div>
+              <div style="font-size: 10px;">${name}</div>
+              <div style="text-align: right;">$${price.toFixed(2)}</div>
+              <div style="text-align: right; font-weight: bold;">$${total.toFixed(2)}</div>
             </div>
           `;
         });
@@ -244,56 +261,85 @@ class PrinterService {
 
       html += `
           <div class="line"></div>
-          <div style="display: flex; justify-content: space-between;">
-            <span>Subtotal 0%:</span>
-            <span>$${(data.subtotal || 0).toFixed(2)}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span>IVA 15%:</span>
-            <span>$${(data.tax || 0).toFixed(2)}</span>
-          </div>
+          <div style="padding: 8px; background: #f9f9f9; margin: 4px 0;">
+            <div style="display: flex; justify-content: space-between; margin: 2px 0;">
+              <span>Subtotal sin IVA:</span>
+              <span>$${(data.subtotal || 0).toFixed(2)}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin: 2px 0;">
+              <span>IVA (15%):</span>
+              <span>$${(data.tax || 0).toFixed(2)}</span>
+            </div>
       `;
 
       if (data.discount > 0) {
         html += `
-          <div style="display: flex; justify-content: space-between; color: green;">
-            <span>Descuento:</span>
-            <span>-$${data.discount.toFixed(2)}</span>
-          </div>
+              <div style="display: flex; justify-content: space-between; color: green; margin: 2px 0;">
+                <span>Descuento:</span>
+                <span>-$${data.discount.toFixed(2)}</span>
+              </div>
         `;
       }
 
       html += `
-          <div class="line"></div>
-          <div style="display: flex; justify-content: space-between;" class="bold">
-            <span>TOTAL:</span>
-            <span>$${(data.total || 0).toFixed(2)}</span>
+            <div class="line"></div>
+            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 14px;">
+              <span>TOTAL:</span>
+              <span>$${(data.total || 0).toFixed(2)}</span>
+            </div>
           </div>
           <div class="line"></div>
-          <div style="display: flex; justify-content: space-between;">
-            <span>Forma de Pago:</span>
-            <span class="bold">${data.paymentMethod || ''}</span>
-          </div>
+          <div style="padding: 8px; background: #e3f2fd; margin: 4px 0;">
+            <div style="display: flex; justify-content: space-between; margin: 2px 0;">
+              <span style="font-weight: bold;">Forma de Pago:</span>
+              <span style="font-weight: bold;">${data.paymentMethod || ''}</span>
+            </div>
       `;
 
       if (data.paymentMethod === 'EFECTIVO') {
         html += `
-          <div style="display: flex; justify-content: space-between;">
-            <span>Efectivo Recibido:</span>
-            <span>$${(data.cashReceived || 0).toFixed(2)}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span>Cambio:</span>
-            <span class="bold">$${(data.change || 0).toFixed(2)}</span>
-          </div>
+              <div style="display: flex; justify-content: space-between; margin: 2px 0;">
+                <span style="font-weight: bold;">Efectivo Recibido:</span>
+                <span style="font-weight: bold;">$${(data.cashReceived || 0).toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin: 2px 0;">
+                <span style="font-weight: bold;">Cambio:</span>
+                <span style="font-weight: bold; color: green;">$${(data.change || 0).toFixed(2)}</span>
+              </div>
         `;
       }
 
       html += `
+          </div>
           <div class="line"></div>
-          <div class="center">${data.footerText || '¡Gracias por su compra!'}</div>
-          <div class="center bold">DAALEF FARMA</div>
-          <div class="center">www.daalef.com</div>
+          <div class="center">
+            <div style="font-size: 14px; font-weight: bold; color: green; margin: 8px 0;">
+              ¡Gracias por su compra!
+            </div>
+            <div style="font-size: 12px; margin: 4px 0;">Vuelva pronto</div>
+            
+            <div style="margin: 12px 0; padding: 8px; background: #1976d2; color: white;">
+              <div style="font-weight: bold; font-size: 14px;">DAALEF FARMA</div>
+              <div style="font-size: 12px;">www.daalef.com</div>
+            </div>
+            
+            <div style="font-size: 10px; color: #666; margin-top: 8px;">
+      `;
+
+      if (data.footerText) {
+        html += data.footerText.replace(/\n/g, '<br>');
+      } else {
+        html += `
+              Su comprobante electrónico ha sido generado correctamente.<br>
+              Recuerde también puede consultar su comprobante en el portal del SRI.<br><br>
+              Sistema de Gestión Farmacéutica<br>
+              © 2024 - Todos los derechos reservados
+        `;
+      }
+
+      html += `
+            </div>
+          </div>
         </div>
       `;
 

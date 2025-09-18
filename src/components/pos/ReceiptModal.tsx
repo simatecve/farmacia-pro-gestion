@@ -46,6 +46,9 @@ export function ReceiptModal({ isOpen, onClose, sale, client }: ReceiptModalProp
         date: format(new Date(sale.created_at), "dd/MM/yyyy HH:mm:ss", { locale: es }),
         cashier: cashierName,
         client: client?.name || 'CONSUMIDOR FINAL',
+        clientId: client?.identification_number || '',
+        clientPhone: client?.phone || '',
+        clientAddress: client?.address || '',
         items: sale.items?.map(item => ({
           name: item.product_name,
           quantity: item.quantity,
