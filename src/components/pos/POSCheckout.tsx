@@ -287,7 +287,7 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
         <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
           <div className="space-y-1">
             <div className="flex justify-between text-sm">
-              <span>Subtotal:</span>
+              <span>Subtotal (sin impuesto):</span>
               <span>${subtotal.toFixed(2)}</span>
             </div>
             {discount > 0 && (
@@ -296,6 +296,10 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
                 <span>-${discount.toFixed(2)}</span>
               </div>
             )}
+            <div className="flex justify-between text-sm">
+              <span>Impuestos:</span>
+              <span>${(total - subtotal + discount).toFixed(2)}</span>
+            </div>
             <div className="flex justify-between border-t pt-1">
               <span className="font-medium">Total a Pagar:</span>
               <span className="text-lg font-bold text-primary">${total.toFixed(2)}</span>
@@ -324,11 +328,10 @@ export function POSCheckout({ items, total, subtotal, discount, onProcessSale, o
               <div className="space-y-6">
                 <div className="text-center p-6 bg-accent/20 rounded-lg">
                   <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">Subtotal (sin impuesto): ${subtotal.toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground">Impuestos: ${(total - subtotal + discount).toFixed(2)}</p>
                     {discount > 0 && (
-                      <>
-                        <p className="text-sm text-muted-foreground">Subtotal: ${subtotal.toFixed(2)}</p>
-                        <p className="text-sm text-green-600">Descuento: -${discount.toFixed(2)}</p>
-                      </>
+                      <p className="text-sm text-green-600">Descuento: -${discount.toFixed(2)}</p>
                     )}
                     <p className="text-3xl font-bold text-primary">${total.toFixed(2)}</p>
                   </div>

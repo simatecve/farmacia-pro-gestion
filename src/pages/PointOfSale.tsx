@@ -100,16 +100,18 @@ export default function PointOfSale() {
   };
 
   const calculateTotals = () => {
-    const subtotal = cartItems.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+    // Calculate base values with tax included in prices
+    const subtotalWithTax = cartItems.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
     const itemDiscounts = cartItems.reduce((sum, item) => sum + item.discount_amount, 0);
     const totalDiscount = itemDiscounts + generalDiscount;
     
-    // Calculate tax for each item based on its specific tax configuration
+    // Calculate tax breakdown - prices already include tax
     let totalTax = 0;
+    let subtotalWithoutTax = 0;
     let taxBreakdown: { [key: string]: { amount: number; rate: number; name: string } } = {};
     
     cartItems.forEach(item => {
-      const itemSubtotal = (item.unit_price * item.quantity) - item.discount_amount;
+      const itemTotalWithTax = (item.unit_price * item.quantity) - item.discount_amount;
       
       // Find the product's specific tax or use default
       const productTax = taxSettings.find(tax => tax.id === (item as any).tax_id);
@@ -117,8 +119,13 @@ export default function PointOfSale() {
       const applicableTax = productTax || defaultTax;
       
       if (applicableTax && applicableTax.rate > 0) {
-        const itemTax = itemSubtotal * applicableTax.rate;
+        // Calculate tax amount included in the price
+        // Formula: tax = (price_with_tax * tax_rate) / (1 + tax_rate)
+        const itemTax = (itemTotalWithTax * applicableTax.rate) / (1 + applicableTax.rate);
+        const itemSubtotalWithoutTax = itemTotalWithTax - itemTax;
+        
         totalTax += itemTax;
+        subtotalWithoutTax += itemSubtotalWithoutTax;
         
         // Group taxes by rate for display
         const taxKey = `${applicableTax.name}_${applicableTax.rate}`;
@@ -130,19 +137,27 @@ export default function PointOfSale() {
           };
         }
         taxBreakdown[taxKey].amount += itemTax;
+      } else {
+        // No tax applicable
+        subtotalWithoutTax += itemTotalWithTax;
       }
     });
     
-    // Apply general discount proportionally to tax calculation
+    // Apply general discount proportionally
     if (generalDiscount > 0) {
-      const discountRatio = generalDiscount / subtotal;
-      totalTax = totalTax * (1 - discountRatio);
+      const discountRatio = generalDiscount / subtotalWithTax;
+      const proportionalTaxDiscount = totalTax * discountRatio;
+      const proportionalSubtotalDiscount = generalDiscount - proportionalTaxDiscount;
+      
+      totalTax -= proportionalTaxDiscount;
+      subtotalWithoutTax -= proportionalSubtotalDiscount;
+      
       Object.keys(taxBreakdown).forEach(key => {
         taxBreakdown[key].amount = taxBreakdown[key].amount * (1 - discountRatio);
       });
     }
     
-    const total = (subtotal - totalDiscount) + totalTax;
+    const total = subtotalWithoutTax + totalTax;
     
     // For backward compatibility, use the most common tax rate and name
     const defaultTax = taxSettings.find(tax => tax.is_default) || taxSettings[0];
@@ -150,7 +165,7 @@ export default function PointOfSale() {
     const taxName = defaultTax?.name || 'IVA';
 
     return { 
-      subtotal, 
+      subtotal: subtotalWithoutTax, 
       discount: totalDiscount, 
       tax: totalTax, 
       total, 

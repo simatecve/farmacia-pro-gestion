@@ -111,9 +111,8 @@ ${sale.items?.map(item =>
 ).join('\n') || ''}
 ================================================
 
-                    Subtotal 0%:    ${(sale.total_amount - sale.tax_amount).toFixed(2)}
-                    Subtotal 15%:   0.00
-                    ${taxName} 15%:        ${sale.tax_amount.toFixed(2)}
+                    Subtotal sin ${taxName}:  ${(sale.total_amount - sale.tax_amount).toFixed(2)}
+                    ${taxName} ({(taxRate * 100).toFixed(0)}%):        ${sale.tax_amount.toFixed(2)}
                     Descuento:      ${(sale.discount_amount || 0).toFixed(2)}
                     TOTAL:          ${sale.total_amount.toFixed(2)}
 
@@ -255,15 +254,11 @@ Recuerde también puede consultar su comprobante en el portal del SRI.
             {/* Totals */}
             <div className="space-y-2 mb-4 bg-gray-50 p-3 rounded">
               <div className="flex justify-between text-sm">
-                <span>Subtotal 0%:</span>
+                <span>Subtotal sin {taxName}:</span>
                 <span>${(sale.total_amount - sale.tax_amount).toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span>Subtotal 15%:</span>
-                <span>$0.00</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>{taxName} {(taxRate * 100).toFixed(0)}%:</span>
+                <span>{taxName} ({(taxRate * 100).toFixed(0)}%):</span>
                 <span>${sale.tax_amount.toFixed(2)}</span>
               </div>
               {sale.discount_amount > 0 && (

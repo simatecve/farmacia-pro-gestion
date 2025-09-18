@@ -159,7 +159,7 @@ const POSCart = React.memo<POSCartProps>(({ items, onUpdateQuantity, onUpdateDis
             <Separator />
             <div className="bg-muted/30 rounded-lg p-3 space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Subtotal:</span>
+                <span>Subtotal (sin impuesto):</span>
                 <span className="font-medium">${subtotal.toFixed(2)}</span>
               </div>
               {discount > 0 && (
