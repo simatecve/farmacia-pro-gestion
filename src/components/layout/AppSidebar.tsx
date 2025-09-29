@@ -41,6 +41,7 @@ const dashboardItems = [
 // VENTAS Y POS
 const salesItems = [
   { title: "Punto de Venta", url: "/pos", icon: CreditCard },
+  { title: "Presupuestos", url: "/presupuestos", icon: FileText },
   { title: "Control de Caja", url: "/caja", icon: DollarSign },
   { title: "Ventas", url: "/ventas", icon: ShoppingCart },
   { title: "Devoluciones", url: "/devoluciones", icon: RotateCcw },

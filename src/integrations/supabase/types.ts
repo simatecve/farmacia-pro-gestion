@@ -28,113 +28,6 @@ export type Database = {
           status: string
           updated_at: string
         }
-      purchase_orders: {
-        Row: {
-          id: string
-          order_number: string
-          supplier_id: string
-          status: string
-          order_date: string
-          expected_delivery_date: string | null
-          received_date: string | null
-          subtotal: number
-          tax_amount: number
-          total_amount: number
-          notes: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          order_number: string
-          supplier_id: string
-          status?: string
-          order_date?: string
-          expected_delivery_date?: string | null
-          received_date?: string | null
-          subtotal?: number
-          tax_amount?: number
-          total_amount?: number
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          order_number?: string
-          supplier_id?: string
-          status?: string
-          order_date?: string
-          expected_delivery_date?: string | null
-          received_date?: string | null
-          subtotal?: number
-          tax_amount?: number
-          total_amount?: number
-          notes?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "purchase_orders_supplier_id_fkey"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "suppliers"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
-      purchase_order_items: {
-        Row: {
-          id: string
-          purchase_order_id: string
-          product_id: string
-          quantity: number
-          unit_price: number
-          total_price: number
-          received_quantity: number
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          purchase_order_id: string
-          product_id: string
-          quantity: number
-          unit_price: number
-          total_price: number
-          received_quantity?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          purchase_order_id?: string
-          product_id?: string
-          quantity?: number
-          unit_price?: number
-          total_price?: number
-          received_quantity?: number
-          created_at?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
-            columns: ["purchase_order_id"]
-            isOneToOne: false
-            referencedRelation: "purchase_orders"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchase_order_items_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
         Insert: {
           amount: number
           amount_paid?: number
@@ -493,6 +386,36 @@ export type Database = {
         }
         Relationships: []
       }
+      electronic_billing_settings: {
+        Row: {
+          certificate_file_url: string | null
+          certificate_password: string | null
+          created_at: string
+          email: string | null
+          id: string
+          next_invoice_number: number
+          updated_at: string
+        }
+        Insert: {
+          certificate_file_url?: string | null
+          certificate_password?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          next_invoice_number?: number
+          updated_at?: string
+        }
+        Update: {
+          certificate_file_url?: string | null
+          certificate_password?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          next_invoice_number?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           available_stock: number | null
@@ -806,14 +729,18 @@ export type Database = {
           id: string
           image_url: string | null
           laboratory: string | null
+          location: string | null
+          location_id: string | null
           max_stock: number
           min_stock: number
           name: string
           presentation: string | null
           purchase_price: number
+          registro_sanitario: string | null
           requires_prescription: boolean
           sale_price: number
           sku: string | null
+          tax_id: string | null
           unit_type: string
           updated_at: string
         }
@@ -829,14 +756,18 @@ export type Database = {
           id?: string
           image_url?: string | null
           laboratory?: string | null
+          location?: string | null
+          location_id?: string | null
           max_stock?: number
           min_stock?: number
           name: string
           presentation?: string | null
           purchase_price?: number
+          registro_sanitario?: string | null
           requires_prescription?: boolean
           sale_price?: number
           sku?: string | null
+          tax_id?: string | null
           unit_type?: string
           updated_at?: string
         }
@@ -852,14 +783,18 @@ export type Database = {
           id?: string
           image_url?: string | null
           laboratory?: string | null
+          location?: string | null
+          location_id?: string | null
           max_stock?: number
           min_stock?: number
           name?: string
           presentation?: string | null
           purchase_price?: number
+          registro_sanitario?: string | null
           requires_prescription?: boolean
           sale_price?: number
           sku?: string | null
+          tax_id?: string | null
           unit_type?: string
           updated_at?: string
         }
@@ -869,6 +804,20 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_tax_id_fkey"
+            columns: ["tax_id"]
+            isOneToOne: false
+            referencedRelation: "tax_settings"
             referencedColumns: ["id"]
           },
         ]
@@ -956,6 +905,211 @@ export type Database = {
           usage_limit?: number | null
         }
         Relationships: []
+      }
+      purchase_order_items: {
+        Row: {
+          created_at: string | null
+          id: string
+          product_id: string
+          purchase_order_id: string
+          quantity: number
+          received_quantity: number | null
+          total_price: number
+          unit_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          product_id: string
+          purchase_order_id: string
+          quantity: number
+          received_quantity?: number | null
+          total_price: number
+          unit_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          product_id?: string
+          purchase_order_id?: string
+          quantity?: number
+          received_quantity?: number | null
+          total_price?: number
+          unit_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_order_items_purchase_order_id_fkey"
+            columns: ["purchase_order_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      purchase_orders: {
+        Row: {
+          created_at: string | null
+          expected_delivery_date: string | null
+          id: string
+          notes: string | null
+          order_date: string
+          order_number: string
+          received_date: string | null
+          status: string | null
+          subtotal: number
+          supplier_id: string
+          tax_amount: number
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number: string
+          received_date?: string | null
+          status?: string | null
+          subtotal?: number
+          supplier_id: string
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expected_delivery_date?: string | null
+          id?: string
+          notes?: string | null
+          order_date?: string
+          order_number?: string
+          received_date?: string | null
+          status?: string | null
+          subtotal?: number
+          supplier_id?: string
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_items: {
+        Row: {
+          created_at: string
+          discount_amount: number
+          id: string
+          product_id: string
+          quantity: number
+          quote_id: string
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          product_id: string
+          quantity: number
+          quote_id: string
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          product_id?: string
+          quantity?: number
+          quote_id?: string
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          discount_amount: number
+          id: string
+          notes: string | null
+          quote_number: string
+          status: string
+          tax_amount: number
+          total_amount: number
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          notes?: string | null
+          quote_number: string
+          status?: string
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          notes?: string | null
+          quote_number?: string
+          status?: string
+          tax_amount?: number
+          total_amount?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       refunds: {
         Row: {
@@ -1056,9 +1210,11 @@ export type Database = {
           created_at: string
           discount_amount: number
           id: string
+          invoice_number: string | null
           notes: string | null
           payment_method: string | null
           sale_number: string
+          sri_access_key: string | null
           status: string
           tax_amount: number
           total_amount: number
@@ -1069,9 +1225,11 @@ export type Database = {
           created_at?: string
           discount_amount?: number
           id?: string
+          invoice_number?: string | null
           notes?: string | null
           payment_method?: string | null
           sale_number: string
+          sri_access_key?: string | null
           status?: string
           tax_amount?: number
           total_amount?: number
@@ -1082,9 +1240,11 @@ export type Database = {
           created_at?: string
           discount_amount?: number
           id?: string
+          invoice_number?: string | null
           notes?: string | null
           payment_method?: string | null
           sale_number?: string
+          sri_access_key?: string | null
           status?: string
           tax_amount?: number
           total_amount?: number
@@ -1142,6 +1302,42 @@ export type Database = {
           phone?: string | null
           tax_id?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      system_security_settings: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          encrypted: boolean | null
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          encrypted?: boolean | null
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          encrypted?: boolean | null
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
         }
         Relationships: []
       }
@@ -1284,9 +1480,78 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_user_role: {
+        Args: {
+          user_email: string
+          user_role?: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: Json
+      }
+      calculate_purchase_order_totals: {
+        Args: { p_purchase_order_id: string }
+        Returns: undefined
+      }
+      create_admin_profile_if_not_exists: {
+        Args: {
+          admin_email?: string
+          admin_name?: string
+          admin_user_id: string
+        }
+        Returns: undefined
+      }
+      create_user_by_admin: {
+        Args: {
+          full_name: string
+          user_email: string
+          user_password: string
+          user_roles?: string[]
+        }
+        Returns: Json
+      }
+      create_user_profile_by_admin: {
+        Args: { full_name: string; user_email: string; user_roles?: string[] }
+        Returns: Json
+      }
+      delete_user_by_admin: {
+        Args: { target_user_id: string }
+        Returns: Json
+      }
+      ensure_admin_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      generate_invoice_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_purchase_order_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_quote_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_sri_access_key: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: Database["public"]["Enums"]["app_role"]
+      }
+      get_users_with_roles: {
+        Args: { page_offset?: number; page_size?: number; search_term?: string }
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          is_active: boolean
+          roles: string[]
+          total_count: number
+          updated_at: string
+          user_id: string
+        }[]
       }
       has_role: {
         Args: {
@@ -1301,6 +1566,18 @@ export type Database = {
           user_full_name?: string
           user_role?: Database["public"]["Enums"]["app_role"]
         }
+        Returns: Json
+      }
+      mark_purchase_order_received: {
+        Args: { p_purchase_order_id: string }
+        Returns: undefined
+      }
+      receive_purchase_order_item: {
+        Args: { p_purchase_order_item_id: string; p_received_quantity: number }
+        Returns: undefined
+      }
+      update_user_roles: {
+        Args: { new_roles: string[]; target_user_id: string }
         Returns: Json
       }
     }

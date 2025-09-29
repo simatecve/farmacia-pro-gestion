@@ -24,6 +24,7 @@ import CashRegister from "./pages/CashRegister";
 import Usuarios from "./pages/Usuarios";
 import WebhooksConfig from "./pages/WebhooksConfig";
 import Configuracion from "./pages/Configuracion";
+import Presupuestos from "./pages/Presupuestos";
 import Auditoria from "./pages/Auditoria";
 import Devoluciones from "./pages/Devoluciones";
 import Kardex from "./pages/Kardex";
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/clientes" element={<MainLayout><Clientes /></MainLayout>} />
             <Route path="/proveedores" element={<MainLayout><Proveedores /></MainLayout>} />
             <Route path="/ventas" element={<MainLayout><Ventas /></MainLayout>} />
+            <Route path="/presupuestos" element={<MainLayout><Presupuestos /></MainLayout>} />
             <Route path="/compras" element={<MainLayout><Compras /></MainLayout>} />
             <Route path="/reportes" element={<MainLayout><Reportes /></MainLayout>} />
             <Route path="/fidelizacion" element={<MainLayout><Fidelizacion /></MainLayout>} />
