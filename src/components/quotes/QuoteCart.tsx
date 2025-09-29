@@ -1,6 +1,6 @@
-import { Trash2 } from "lucide-react";
+import { Trash2, Minus, Plus, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface CartItem {
   id: string;
@@ -36,69 +36,105 @@ export const QuoteCart = ({ items, onUpdateQuantity, onRemoveItem }: QuoteCartPr
   const total = subtotal + tax;
 
   return (
-    <Card className="p-4 space-y-4">
-      <h3 className="font-semibold text-lg">Items del Presupuesto</h3>
-      
+    <div className="space-y-4">
       {items.length === 0 ? (
-        <p className="text-muted-foreground text-center py-8">
-          No hay items en el presupuesto
-        </p>
+        <div className="text-center py-12 text-muted-foreground bg-muted/30 rounded-lg border-2 border-dashed">
+          <Package className="h-16 w-16 mx-auto mb-3 opacity-30" />
+          <p className="text-lg font-medium">No hay productos agregados</p>
+          <p className="text-sm">Busca y agrega productos para crear el presupuesto</p>
+        </div>
       ) : (
         <>
-          <div className="space-y-2">
-            {items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between p-2 border rounded">
-                <div className="flex-1">
-                  <p className="font-medium">{item.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    ${item.price.toFixed(2)} x {item.quantity}
-                  </p>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                  >
-                    -
-                  </Button>
-                  <span className="w-8 text-center">{item.quantity}</span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                  >
-                    +
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onRemoveItem(item.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
+          <div className="border rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50">
+                  <TableHead className="font-semibold">Producto</TableHead>
+                  <TableHead className="text-center font-semibold w-32">Cantidad</TableHead>
+                  <TableHead className="text-right font-semibold w-32">P. Unitario</TableHead>
+                  <TableHead className="text-right font-semibold w-32">Subtotal</TableHead>
+                  <TableHead className="w-12"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {items.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{item.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          IVA {(item.tax_rate * 100).toFixed(0)}%
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-8 w-8"
+                          onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                          disabled={item.quantity <= 1}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        
+                        <span className="w-12 text-center font-medium">
+                          {item.quantity}
+                        </span>
+                        
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          className="h-8 w-8"
+                          onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      ${item.price.toFixed(2)}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      ${calculateItemSubtotal(item).toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        onClick={() => onRemoveItem(item.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
 
-          <div className="border-t pt-4 space-y-2">
-            <div className="flex justify-between">
-              <span>Subtotal:</span>
-              <span>${subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Impuesto:</span>
-              <span>${tax.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between font-bold text-lg">
-              <span>Total:</span>
-              <span>${total.toFixed(2)}</span>
+          <div className="flex justify-end">
+            <div className="w-full max-w-xs space-y-3 bg-muted/30 p-4 rounded-lg">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Subtotal:</span>
+                <span className="font-medium">${subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">IVA:</span>
+                <span className="font-medium">${tax.toFixed(2)}</span>
+              </div>
+              <div className="border-t pt-3">
+                <div className="flex justify-between text-lg font-bold">
+                  <span>Total:</span>
+                  <span className="text-primary">${total.toFixed(2)}</span>
+                </div>
+              </div>
             </div>
           </div>
         </>
       )}
-    </Card>
+    </div>
   );
 };

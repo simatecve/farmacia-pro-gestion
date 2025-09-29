@@ -170,37 +170,63 @@ export default function Presupuestos() {
         </div>
 
         {/* Nuevo Presupuesto */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            <Card className="p-4">
-              <h3 className="font-semibold mb-4">Buscar Producto</h3>
-              <ProductSearch
-                onAddProduct={handleProductSelect}
-              />
-            </Card>
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Crear Nuevo Presupuesto
+          </h3>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Información del Cliente */}
+            <div className="space-y-6">
+              <div>
+                <h4 className="font-medium mb-3 text-sm text-muted-foreground uppercase tracking-wide">
+                  Información del Cliente
+                </h4>
+                <ClientSearch
+                  onClientSelect={setSelectedClient}
+                  selectedClientId={selectedClient?.id}
+                />
+                {selectedClient && (
+                  <div className="mt-3 p-3 bg-muted/50 rounded-lg text-sm">
+                    <p className="font-medium">{selectedClient.name}</p>
+                    {selectedClient.email && <p className="text-muted-foreground">{selectedClient.email}</p>}
+                    {selectedClient.phone && <p className="text-muted-foreground">{selectedClient.phone}</p>}
+                  </div>
+                )}
+              </div>
 
-            <QuoteCart
-              items={cart}
-              onUpdateQuantity={handleUpdateQuantity}
-              onRemoveItem={handleRemoveItem}
-            />
+              <div>
+                <h4 className="font-medium mb-3 text-sm text-muted-foreground uppercase tracking-wide">
+                  Agregar Productos
+                </h4>
+                <ProductSearch onAddProduct={handleProductSelect} />
+              </div>
+            </div>
+
+            {/* Detalles del Presupuesto */}
+            <div className="space-y-6">
+              <QuoteCheckout
+                onGenerateQuote={handleGenerateQuote}
+                loading={loading}
+              />
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <Card className="p-4">
-              <h3 className="font-semibold mb-4">Cliente</h3>
-              <ClientSearch
-                onClientSelect={setSelectedClient}
-                selectedClientId={selectedClient?.id}
+          {/* Lista de Productos */}
+          {cart.length > 0 && (
+            <div className="mt-8 pt-6 border-t">
+              <h4 className="font-medium mb-4 text-sm text-muted-foreground uppercase tracking-wide">
+                Productos Seleccionados
+              </h4>
+              <QuoteCart
+                items={cart}
+                onUpdateQuantity={handleUpdateQuantity}
+                onRemoveItem={handleRemoveItem}
               />
-            </Card>
-
-            <QuoteCheckout
-              onGenerateQuote={handleGenerateQuote}
-              loading={loading}
-            />
-          </div>
-        </div>
+            </div>
+          )}
+        </Card>
 
         {/* Lista de Presupuestos */}
         <Card className="p-6">
