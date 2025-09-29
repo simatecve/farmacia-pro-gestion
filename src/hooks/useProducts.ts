@@ -98,9 +98,16 @@ export function useProducts() {
     try {
       console.log('Creating product with data:', productData);
       
+      // Transform location object to location_id if needed
+      const dbData: any = { ...productData };
+      if (dbData.location && typeof dbData.location === 'object') {
+        dbData.location_id = dbData.location.id;
+        delete dbData.location;
+      }
+      
       const { data, error } = await supabase
         .from('products')
-        .insert([productData])
+        .insert([dbData])
         .select(`
           *,
           category:categories(id, name),
@@ -153,9 +160,16 @@ export function useProducts() {
     try {
       console.log('Updating product with id:', id, 'data:', productData);
       
+      // Transform location object to location_id if needed
+      const dbData: any = { ...productData };
+      if (dbData.location && typeof dbData.location === 'object') {
+        dbData.location_id = dbData.location.id;
+        delete dbData.location;
+      }
+      
       const { data, error } = await supabase
         .from('products')
-        .update(productData)
+        .update(dbData)
         .eq('id', id)
         .select(`
           *,
